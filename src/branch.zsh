@@ -41,12 +41,10 @@ select_base_branch() {
   if [[ -n "$perennials" ]]; then
     local p
     for p in ${(z)perennials}; do
-      local found=0
-      local c
-      for c in "${candidates[@]}"; do
-        [[ "$c" == "$p" ]] && found=1 && break
-      done
-      [[ $found -eq 0 ]] && candidates+=("$p")
+      # Use zsh array index search instead of nested loop - avoids variable capture bug
+      if (( ${candidates[(I)$p]} == 0 )); then
+        candidates+=("$p")
+      fi
     done
   fi
 
@@ -57,7 +55,7 @@ select_base_branch() {
 
   info "Select a base branch:"
   if fzf_available; then
-    print -r -- "${(j:\n:)candidates}" | select_with_fzf "Base branch"
+    print -r -- "${(F)candidates}" | select_with_fzf "Base branch"
   else
     local i=1
     local b
