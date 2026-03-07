@@ -186,6 +186,27 @@ cmd_idea() {
   need_cmd llm
   need_cmd git-town
 
+  local auto_yes=0 model=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --yes)   auto_yes=1; shift ;;
+      --model) model="$2"; shift 2 ;;
+      -m)      model="$2"; shift 2 ;;
+      --) shift; break ;;
+      -*)
+        local flags="${1:1}"; shift
+        for (( i=1; i<=${#flags}; i++ )); do
+          case "${flags[i]}" in
+            y) auto_yes=1 ;;
+            m) die "-m requires an argument; use -m <model> as a standalone flag" ;;
+            *) die "Unknown option: -${flags[i]}" ;;
+          esac
+        done
+        ;;
+      *) break ;;
+    esac
+  done
+
   local idea="${1:-}"
 
   if [[ -z "$idea" ]]; then
@@ -193,9 +214,12 @@ cmd_idea() {
     [[ -n "$idea" ]] || die "No idea provided."
   fi
 
+  local llm_args=()
+  [[ -n "$model" ]] && llm_args=(-m "$model")
+
   local branch
   branch="$(printf 'Idea: %s\nRepo: %s' "$idea" "$(basename "$(repo_root)")" \
-    | llm -s $'You are a Git workflow assistant.
+    | llm "${llm_args[@]}" -s $'You are a Git workflow assistant.
 
 Task:
 Generate ONE git branch name for the user\'s idea.
@@ -235,7 +259,7 @@ Return ONLY the branch name.')"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
 
   info "Proposed branch: $branch"
-  if ! confirm "Create and switch to '$branch'?"; then
+  if [[ $auto_yes -eq 0 ]] && ! confirm "Create and switch to '$branch'?"; then
     local manual
     manual="$(prompt_choice "Enter the branch name you want to use:" "$branch")"
     branch="$(sanitize_branch_name "$manual")"
@@ -252,6 +276,27 @@ cmd_issue() {
   need_cmd git-town
   gh auth status >/dev/null 2>&1 || die "GitHub CLI not authenticated. Run: gh auth login"
 
+  local auto_yes=0 model=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --yes)   auto_yes=1; shift ;;
+      --model) model="$2"; shift 2 ;;
+      -m)      model="$2"; shift 2 ;;
+      --) shift; break ;;
+      -*)
+        local flags="${1:1}"; shift
+        for (( i=1; i<=${#flags}; i++ )); do
+          case "${flags[i]}" in
+            y) auto_yes=1 ;;
+            m) die "-m requires an argument; use -m <model> as a standalone flag" ;;
+            *) die "Unknown option: -${flags[i]}" ;;
+          esac
+        done
+        ;;
+      *) break ;;
+    esac
+  done
+
   local issue_number="${1:-}"
   [[ -n "$issue_number" ]] || die "Usage: hack issue <number>"
 
@@ -267,16 +312,19 @@ cmd_issue() {
   idea="$(printf '%s\n\n%s' "$issue_title" "$issue_body")"
   idea="$(truncate_str "$idea" 1500)"
 
+  local llm_args=()
+  [[ -n "$model" ]] && llm_args=(-m "$model")
+
   local branch
   branch="$(printf 'GitHub issue #%s: %s\n\n%s\n\nRepo: %s' \
     "$issue_number" "$issue_title" "$idea" "$(basename "$(repo_root)")" \
-    | llm -s 'Propose ONE kebab-case git branch name, 60 chars max. Output only the name.')"
+    | llm "${llm_args[@]}" -s 'Propose ONE kebab-case git branch name, 60 chars max. Output only the name.')"
   branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
   branch="$(sanitize_branch_name "$branch")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
 
   info "Proposed branch: $branch"
-  if ! confirm "Create and switch to '$branch'?"; then
+  if [[ $auto_yes -eq 0 ]] && ! confirm "Create and switch to '$branch'?"; then
     local manual
     manual="$(prompt_choice "Enter the branch name you want to use:" "$branch")"
     branch="$(sanitize_branch_name "$manual")"
@@ -290,12 +338,30 @@ cmd_issue() {
 cmd_record() {
   need_cmd llm
 
-  local conventional=0 stage_all=0 push=0
+  local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 model=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -a|--all)          stage_all=1; shift ;;
-      -c|--conventional) conventional=1; shift ;;
-      -p|--push)         push=1; shift ;;
+      --all)          stage_all=1; shift ;;
+      --conventional) conventional=1; shift ;;
+      --push)         push=1; shift ;;
+      --yes)          auto_yes=1; shift ;;
+      --amend)        amend=1; shift ;;
+      --model)        model="$2"; shift 2 ;;
+      -m)             model="$2"; shift 2 ;;
+      --)             shift; break ;;
+      -*)
+        local flags="${1:1}"; shift
+        for (( i=1; i<=${#flags}; i++ )); do
+          case "${flags[i]}" in
+            a) stage_all=1 ;;
+            c) conventional=1 ;;
+            p) push=1 ;;
+            y) auto_yes=1 ;;
+            m) die "-m requires an argument; use -m <model> as a standalone flag" ;;
+            *) die "Unknown option: -${flags[i]}" ;;
+          esac
+        done
+        ;;
       *) die "Unknown option: $1" ;;
     esac
   done
@@ -391,47 +457,83 @@ Good examples:
 Return ONLY the subject line.'
   fi
 
+  local llm_args=()
+  [[ -n "$model" ]] && llm_args=(-m "$model")
+
   local msg
   msg="$(printf 'Repo: %s\nBranch: %s\n\nSTAGED DIFF:\n%s' \
     "$(basename "$(repo_root)")" "$(current_branch)" "$diff_trunc" \
-    | llm -s "$system_prompt")"
+    | llm "${llm_args[@]}" -s "$system_prompt")"
   msg="$(print -r -- "$msg" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   [[ -n "$msg" ]] || die "Empty commit message from model."
 
   info "Proposed commit message:"
   print -r -- "  $msg" >&2
   print -r -- "" >&2
-  print -r -- "Options: (y) commit, (e) edit, (n) cancel" >&2
-  local choice
-  choice="$(prompt_choice "Choose y/e/n:" "y")"
 
-  case "$choice" in
-    y|Y)
-      git commit -m "$msg"
-      ok "Committed."
-      if [[ $push -eq 1 ]]; then
-        if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
-      fi
-      ;;
-    e|E)
-      local manual
-      manual="$(prompt_choice "Enter commit subject:" "$msg")"
-      manual="$(print -r -- "$manual" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
-      [[ -n "$manual" ]] || die "Empty message."
-      git commit -m "$manual"
-      ok "Committed."
-      if [[ $push -eq 1 ]]; then
-        if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
-      fi
-      ;;
-    n|N) die "Cancelled." ;;
-    *) die "Invalid choice." ;;
-  esac
+  local amend_flag=() push_flag=()
+  [[ $amend -eq 1 ]] && amend_flag=(--amend)
+  [[ $amend -eq 1 ]] && push_flag=(--force-with-lease)
+
+  _do_commit() {
+    local subject="$1"
+    git commit "${amend_flag[@]}" -m "$subject"
+    [[ $amend -eq 1 ]] && ok "Amended." || ok "Committed."
+    if [[ $push -eq 1 ]]; then
+      if git push "${push_flag[@]}"; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+    fi
+  }
+
+  if [[ $auto_yes -eq 1 ]]; then
+    _do_commit "$msg"
+  else
+    print -r -- "Options: (y) commit, (e) edit, (n) cancel" >&2
+    local choice
+    choice="$(prompt_choice "Choose y/e/n:" "y")"
+
+    case "$choice" in
+      y|Y) _do_commit "$msg" ;;
+      e|E)
+        local manual
+        manual="$(prompt_choice "Enter commit subject:" "$msg")"
+        manual="$(print -r -- "$manual" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+        [[ -n "$manual" ]] || die "Empty message."
+        _do_commit "$manual"
+        ;;
+      n|N) die "Cancelled." ;;
+      *) die "Invalid choice." ;;
+    esac
+  fi
+
+  unfunction _do_commit
 }
 # SUBCOMMAND: propose
 cmd_propose() {
   need_cmd llm
   need_cmd git-town
+
+  local auto_yes=0 draft=0 model=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --yes)   auto_yes=1; shift ;;
+      --draft) draft=1; shift ;;
+      --model) model="$2"; shift 2 ;;
+      -m)      model="$2"; shift 2 ;;
+      --)      shift; break ;;
+      -*)
+        local flags="${1:1}"; shift
+        for (( i=1; i<=${#flags}; i++ )); do
+          case "${flags[i]}" in
+            y) auto_yes=1 ;;
+            d) draft=1 ;;
+            m) die "-m requires an argument; use -m <model> as a standalone flag" ;;
+            *) die "Unknown option: -${flags[i]}" ;;
+          esac
+        done
+        ;;
+      *) die "Unknown option: $1" ;;
+    esac
+  done
 
   local branch
   branch="$(current_branch)"
@@ -463,10 +565,13 @@ cmd_propose() {
     "$(basename "$(repo_root)")" "$branch" "$base" "${last_tag:-<none>}" \
     "$commits" "$diffstat" "${cl:-<none>}" "$diff_trunc")"
 
+  local llm_args=()
+  [[ -n "$model" ]] && llm_args=(-m "$model")
+
   info "Generating PR title..."
   local title
   title="$(print -r -- "$context" \
-    | llm -s 'You are a senior engineer preparing a GitHub Pull Request title.
+    | llm "${llm_args[@]}" -s 'You are a senior engineer preparing a GitHub Pull Request title.
 
 Task:
 Generate ONE Conventional Commit title describing the overall change in this branch.
@@ -500,7 +605,7 @@ Return ONLY the title.')"
   info "Generating PR body..."
   local body
   body="$(print -r -- "$context" \
-    | llm -s 'You are a senior engineer preparing a GitHub Pull Request description.
+    | llm "${llm_args[@]}" -s 'You are a senior engineer preparing a GitHub Pull Request description.
 
 Write the PR body like release notes for users and maintainers.
 
@@ -540,11 +645,14 @@ Return ONLY the body text.')"
   [[ "$(print -r -- "$body" | wc -l | tr -d ' ')" -gt 20 ]] \
     && print -r -- "  ... (truncated preview) ..." >&2
 
-  if ! confirm "Use this title/body for the PR?"; then
+  if [[ $auto_yes -eq 0 ]] && ! confirm "Use this title/body for the PR?"; then
     die "Cancelled."
   fi
 
-  git town propose --title "$title" --body "$body"
+  local draft_flag=()
+  [[ $draft -eq 1 ]] && draft_flag=(--draft)
+
+  git town propose "${draft_flag[@]}" --title "$title" --body "$body"
 }
 ############################################
 # SUBCOMMAND: pick (interactive)
@@ -840,10 +948,10 @@ git-hack — git workflow helper powered by llm + git-town
 Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 
 Commands:
-  git hack [idea]              Create a feature branch (llm names it, git-town tracks it)
-  git hack issue <number>      Create a branch from a GitHub issue
-  git hack record [-a] [-c] [-p]  AI commit message (-a: stage all, -p: push after)
-  git hack propose             Create/update a GitHub PR via git-town
+  git hack [-y] [-m model] [idea]                        Create a feature branch
+  git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
+  git hack record [-y] [-a] [-c] [-p] [--amend] [-m model]  AI commit message
+  git hack propose [-y] [-d] [-m model]                  Create/update a GitHub PR via git-town
   git hack pick [sha] [branch] Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack done                Delete merged branch and sync main

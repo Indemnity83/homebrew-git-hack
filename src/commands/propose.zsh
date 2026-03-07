@@ -3,6 +3,29 @@ cmd_propose() {
   need_cmd llm
   need_cmd git-town
 
+  local auto_yes=0 draft=0 model=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --yes)   auto_yes=1; shift ;;
+      --draft) draft=1; shift ;;
+      --model) model="$2"; shift 2 ;;
+      -m)      model="$2"; shift 2 ;;
+      --)      shift; break ;;
+      -*)
+        local flags="${1:1}"; shift
+        for (( i=1; i<=${#flags}; i++ )); do
+          case "${flags[i]}" in
+            y) auto_yes=1 ;;
+            d) draft=1 ;;
+            m) die "-m requires an argument; use -m <model> as a standalone flag" ;;
+            *) die "Unknown option: -${flags[i]}" ;;
+          esac
+        done
+        ;;
+      *) die "Unknown option: $1" ;;
+    esac
+  done
+
   local branch
   branch="$(current_branch)"
   [[ -n "$branch" ]] || die "Detached HEAD; check out a branch first."
@@ -33,10 +56,13 @@ cmd_propose() {
     "$(basename "$(repo_root)")" "$branch" "$base" "${last_tag:-<none>}" \
     "$commits" "$diffstat" "${cl:-<none>}" "$diff_trunc")"
 
+  local llm_args=()
+  [[ -n "$model" ]] && llm_args=(-m "$model")
+
   info "Generating PR title..."
   local title
   title="$(print -r -- "$context" \
-    | llm -s 'You are a senior engineer preparing a GitHub Pull Request title.
+    | llm "${llm_args[@]}" -s 'You are a senior engineer preparing a GitHub Pull Request title.
 
 Task:
 Generate ONE Conventional Commit title describing the overall change in this branch.
@@ -70,7 +96,7 @@ Return ONLY the title.')"
   info "Generating PR body..."
   local body
   body="$(print -r -- "$context" \
-    | llm -s 'You are a senior engineer preparing a GitHub Pull Request description.
+    | llm "${llm_args[@]}" -s 'You are a senior engineer preparing a GitHub Pull Request description.
 
 Write the PR body like release notes for users and maintainers.
 
@@ -110,9 +136,12 @@ Return ONLY the body text.')"
   [[ "$(print -r -- "$body" | wc -l | tr -d ' ')" -gt 20 ]] \
     && print -r -- "  ... (truncated preview) ..." >&2
 
-  if ! confirm "Use this title/body for the PR?"; then
+  if [[ $auto_yes -eq 0 ]] && ! confirm "Use this title/body for the PR?"; then
     die "Cancelled."
   fi
 
-  git town propose --title "$title" --body "$body"
+  local draft_flag=()
+  [[ $draft -eq 1 ]] && draft_flag=(--draft)
+
+  git town propose "${draft_flag[@]}" --title "$title" --body "$body"
 }

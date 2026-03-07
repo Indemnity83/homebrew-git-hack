@@ -23,10 +23,10 @@ git-hack — git workflow helper powered by llm + git-town
 Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 
 Commands:
-  git hack [idea]              Create a feature branch (llm names it, git-town tracks it)
-  git hack issue <number>      Create a branch from a GitHub issue
-  git hack record [-a] [-c] [-p]  AI commit message (-a: stage all, -p: push after)
-  git hack propose             Create/update a GitHub PR via git-town
+  git hack [-y] [-m model] [idea]                        Create a feature branch
+  git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
+  git hack record [-y] [-a] [-c] [-p] [--amend] [-m model]  AI commit message
+  git hack propose [-y] [-d] [-m model]                  Create/update a GitHub PR via git-town
   git hack pick [sha] [branch] Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack done                Delete merged branch and sync main
