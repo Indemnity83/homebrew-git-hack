@@ -22,9 +22,10 @@ brew install llm git-town gh
 **Install the script:**
 
 <!-- RELEASE_INSTALL_BEGIN -->
-```markdown
-Manual binary install instructions are published automatically with each release.
-Until the first release is cut, use the Homebrew flow above.
+```bash
+curl -fsSL https://github.com/indemnity83/homebrew-git-hack/releases/download/v0.0.0/git-hack -o /tmp/git-hack
+echo "PLACEHOLDER  /tmp/git-hack" | shasum -a 256 -c
+install -m 755 /tmp/git-hack /usr/local/bin/git-hack
 ```
 <!-- RELEASE_INSTALL_END -->
 
