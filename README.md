@@ -1,143 +1,145 @@
-# hack
+# git-hack
 
-A lightweight git CLI that uses OpenAI to automate the repetitive parts of your workflow: naming branches, writing commit messages, and drafting pull requests.
+A git workflow helper that uses [`llm`](https://llm.datasette.io) for AI assistance and [`git-town`](https://www.git-town.com) for branch management. It automates the repetitive parts of your workflow: naming branches, writing commit messages, and drafting pull requests.
 
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Indemnity83/hack/main/hack -o /usr/local/bin/hack && chmod +x /usr/local/bin/hack
+curl -fsSL https://raw.githubusercontent.com/Indemnity83/hack/main/git-hack -o /usr/local/bin/git-hack && chmod +x /usr/local/bin/git-hack
 ```
 
 Or if you prefer `~/.local/bin` (no `sudo` required):
 
 ```bash
-mkdir -p ~/.local/bin && curl -fsSL https://raw.githubusercontent.com/Indemnity83/hack/main/hack -o ~/.local/bin/hack && chmod +x ~/.local/bin/hack
+mkdir -p ~/.local/bin && curl -fsSL https://raw.githubusercontent.com/Indemnity83/hack/main/git-hack -o ~/.local/bin/git-hack && chmod +x ~/.local/bin/git-hack
 ```
 
-Make sure the target directory is on your `$PATH`.
+Make sure the target directory is on your `$PATH`. Once installed, both `git hack` and `git-hack` work.
 
-## Configuration
+## Setup
 
-Set your OpenAI API key via environment variable or a config file:
+**Install dependencies:**
 
 ```bash
-# Option 1: environment variable (e.g. in ~/.zshrc)
-export OPENAI_API_KEY='sk-proj-...'
-
-# Option 2: config file
-mkdir -p ~/.config/hack
-echo 'OPENAI_API_KEY="sk-proj-..."' > ~/.config/hack/config
-chmod 600 ~/.config/hack/config
+brew install llm git-town fzf
 ```
 
-To override the model (default: `gpt-5.2`):
+**Configure your LLM** (choose any provider `llm` supports):
 
 ```bash
-export OPENAI_MODEL="gpt-4o"
+llm install llm-claude-claude-sonnet-4-5   # Anthropic
+# or: llm install llm-openai, llm install llm-gemini, etc.
+llm keys set anthropic
 ```
+
+**Configure git-town** once per repo:
+
+```bash
+git town config setup
+```
+
+**Install git aliases** (optional but recommended):
+
+```bash
+git hack init
+```
+
+This adds shortcuts like `git snap`, `git propose`, etc. to your `~/.gitconfig`.
 
 ## Dependencies
 
 | Tool | Required | Used for |
 |------|----------|----------|
 | `git` | yes | everything |
-| `curl` | yes | OpenAI API calls |
-| `jq` | yes | JSON parsing |
-| `gh` | for `propose`, `done`, `prune`, `issue` | GitHub operations |
+| `llm` | yes | AI suggestions |
+| `git-town` | yes | branch creation and PR workflow |
+| `gh` | for `hack issue` | fetching GitHub issue data |
 | `fzf` | no | improved selection UI |
-
-Install optional tools for the best experience:
-
-```bash
-brew install fzf gh
-```
 
 ## Commands
 
-### `hack idea ["description"]`
+### `git hack ["description"]`
 
-Creates a new feature branch. AI suggests a branch name from your description; you confirm or edit it before the branch is created. If you have uncommitted changes, you can bring them along or stash them.
+Creates a new feature branch. With no subcommand, defaults to `idea`. AI suggests a branch name; you confirm or edit before the branch is created. git-town tracks the parent branch automatically.
 
 ```bash
-hack idea
-hack idea "add dark mode toggle to settings page"
+git hack                                    # interactive: prompts for description
+git hack "add dark mode toggle"             # branch name suggested immediately
+git hack idea "add dark mode toggle"        # explicit subcommand form
 ```
 
-### `hack issue <number>`
+### `git hack issue <number>`
 
 Same as `idea`, but fetches the title and body from a GitHub issue to generate the branch name.
 
 ```bash
-hack issue 42
+git hack issue 42
 ```
 
-### `hack commit`
+### `git hack snapshot [-c|--conventional]`
 
 Generates a commit message from your staged diff. If nothing is staged, offers to run `git add -p`. You can accept, edit, or cancel before the commit is made.
 
 ```bash
 git add -p
-hack commit
+git hack snapshot              # imperative subject line
+git hack snapshot --conventional   # conventional commit prefix (feat:, fix:, …)
 ```
 
-### `hack propose [remote]`
+Also available as `git snap` after running `git hack init`.
 
-Creates or updates a GitHub PR for the current branch. Generates a conventional-commit title and a release-notes-style body from your commits, diff, and `CHANGELOG.md` (if present). Pushes the branch if needed.
+### `git hack propose`
+
+Creates or updates a GitHub PR for the current branch using `git town propose`. Generates a conventional-commit title and a release-notes-style body from your commits, diff, and `CHANGELOG.md` (if present). Parent branch is read from git-town's tracking config.
 
 ```bash
-hack propose           # targets origin (default)
-hack propose upstream  # targets a different remote (fork workflow)
+git hack propose
 ```
 
-### `hack port [sha] [branch]`
+### `git hack port [sha] [branch]`
 
 Cherry-picks a commit onto another branch. Without arguments, shows an interactive list of recent commits from the default branch (uses `fzf` if available). Returns to your original branch when done.
 
 ```bash
-hack port                        # interactive: pick commit and target branch
-hack port abc1234                # cherry-pick onto current branch
-hack port abc1234 release/v2     # cherry-pick onto a specific branch
-hack port --continue             # resume after resolving conflicts
+git hack port                        # interactive: pick commit
+git hack port abc1234                # cherry-pick onto current branch
+git hack port abc1234 release/v2     # cherry-pick onto a specific branch
+git hack port --continue             # resume after resolving conflicts
 ```
 
-### `hack done`
+### `git hack done`
 
-Cleans up after a merged PR: deletes the remote branch, switches to the base branch, pulls latest, and deletes the local branch. Warns if the PR is still open or was closed without merging.
+Runs `git town sync`, which detects merged PRs, switches to the parent branch, and cleans up the local branch automatically.
 
 ```bash
-hack done
+git hack done
 ```
 
-### `hack prune`
+### `git hack prune`
 
-Bulk-deletes all local branches that have been fully merged into the default branch (plus their remote counterparts). Protected branches (`main`, `master`, the default branch, and any perennial branches) are never deleted.
+Runs `git town prune` to delete orphaned local branches.
 
 ```bash
-hack prune
+git hack prune
 ```
 
-### `hack init`
+### `git hack init`
 
-Configures hack for the current repository. Run this once per repo to set the main branch and any perennial branches:
+Installs optional git aliases into your global `~/.gitconfig`. Run once after installing `git-hack`.
 
 ```bash
-hack init
+git hack init
 ```
 
-This writes to your repo's `.git/config`:
+With `fzf`: TAB to multi-select aliases, ENTER to confirm. Without `fzf`: numbered list, enter numbers or `all`.
 
-```
-hack.main-branch = main
-hack.perennial-branches = release staging
-```
+Aliases installed:
 
-## Per-repo configuration
-
-`hack init` is the recommended way to configure hack per repo. You can also set keys directly:
-
-```bash
-git config hack.main-branch develop
-git config hack.perennial-branches "release staging"
-```
-
-**Git-Town compatibility:** if `git-town.*` config keys are present and no `hack.*` keys have been set, hack reads them automatically. Existing git-town repos continue to work without re-running `hack init`.
+| Alias | Expands to |
+|-------|-----------|
+| `git snap` | `git hack snapshot` |
+| `git propose` | `git hack propose` |
+| `git port` | `git hack port` |
+| `git done` | `git hack done` |
+| `git prune` | `git hack prune` |
+| `git issue` | `git hack issue` |
