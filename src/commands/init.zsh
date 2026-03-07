@@ -1,46 +1,91 @@
-############################################
-# SUBCOMMAND: init (interactive)
-############################################
+# SUBCOMMAND: init — install global git aliases for git-hack commands
 cmd_init() {
-  in_git_repo || die "Run this inside a git repository."
-  info "Setting up hack for this repository..."
+  # Parallel arrays: alias name, git-hack subcommand, description
+  local -a alias_names=(snap      propose   port                    done                          prune                    issue                       )
+  local -a alias_cmds=( snapshot  propose   port                    done                          prune                    issue                       )
+  local -a alias_descs=(
+    "AI-generated commit message"
+    "Create or update a GitHub PR"
+    "Cherry-pick a commit"
+    "Sync and clean up current branch"
+    "Delete orphaned branches"
+    "Create branch from GitHub issue"
+  )
+
+  info "git-hack alias installer"
+  print -r -- "Installs shortcuts in your global ~/.gitconfig" >&2
+  print -r -- "e.g. 'git snap'  instead of  'git hack snapshot'" >&2
   print -r -- "" >&2
 
-  # Detect likely main branch
-  local detected_main
-  detected_main="$(git config hack.main-branch 2>/dev/null || true)"
-  if [[ -z "$detected_main" ]]; then
-    detected_main="$(git config git-town.main-branch 2>/dev/null || true)"
-  fi
-  if [[ -z "$detected_main" ]]; then
-    local ref
-    ref="$(git symbolic-ref -q refs/remotes/origin/HEAD 2>/dev/null || true)"
-    [[ -n "$ref" ]] && detected_main="${ref#refs/remotes/origin/}"
-  fi
-  if [[ -z "$detected_main" ]]; then
-    if git show-ref --verify --quiet refs/heads/main;   then detected_main="main";   fi
-    if git show-ref --verify --quiet refs/heads/master; then detected_main="master"; fi
-  fi
-  : "${detected_main:=main}"
+  local -a selected_names=()
 
-  local main_branch
-  main_branch="$(prompt_choice "Main branch:" "$detected_main")"
-  [[ -n "$main_branch" ]] || die "Main branch cannot be empty."
+  if fzf_available; then
+    # Build display lines: "snap        AI-generated commit message  [installed]"
+    local -a menu_lines=()
+    local i
+    for (( i=1; i<=${#alias_names[@]}; i++ )); do
+      local existing
+      existing="$(git config --global "alias.${alias_names[$i]}" 2>/dev/null || true)"
+      local tag=""
+      [[ -n "$existing" ]] && tag="  ✓ installed"
+      menu_lines+=("$(printf '%-10s  %s%s' "${alias_names[$i]}" "${alias_descs[$i]}" "$tag")")
+    done
+
+    local chosen
+    chosen="$(printf '%s\n' "${menu_lines[@]}" \
+      | fzf --multi --height=60% --reverse --border \
+            --prompt="Aliases > " --pointer="▶" --marker="✓" \
+            --header="TAB=toggle  ENTER=confirm")" || true
+
+    # Extract alias name (first word) from each selected line
+    selected_names=(${(f)chosen})
+    selected_names=("${selected_names[@]%% *}")
+  else
+    # Numbered checklist
+    local i
+    for (( i=1; i<=${#alias_names[@]}; i++ )); do
+      local existing
+      existing="$(git config --global "alias.${alias_names[$i]}" 2>/dev/null || true)"
+      local tag=""
+      [[ -n "$existing" ]] && tag="  [installed]"
+      printf '  %d) git %-10s %s%s\n' "$i" "${alias_names[$i]}" "${alias_descs[$i]}" "$tag" >&2
+    done
+    print -r -- "" >&2
+
+    local choice
+    choice="$(prompt_choice "Numbers to install (space-separated, or 'all'):" "all")"
+    [[ -n "$choice" ]] || { info "No aliases selected."; return; }
+
+    if [[ "$choice" == "all" ]]; then
+      selected_names=("${alias_names[@]}")
+    else
+      local num
+      for num in ${(z)choice}; do
+        if [[ "$num" =~ ^[0-9]+$ ]] && (( num >= 1 && num <= ${#alias_names[@]} )); then
+          selected_names+=("${alias_names[$num]}")
+        fi
+      done
+    fi
+  fi
+
+  [[ ${#selected_names[@]} -gt 0 ]] || { info "No aliases selected."; return; }
 
   print -r -- "" >&2
-  info "Perennial branches are protected from deletion by 'hack done' and 'hack prune'."
-  info "Leave blank to skip."
-  local perennial_input
-  perennial_input="$(prompt_choice "Perennial branches (space-separated):" "")"
-
-  git config hack.main-branch "$main_branch"
-  ok "Set hack.main-branch = $main_branch"
-
-  if [[ -n "$perennial_input" ]]; then
-    git config hack.perennial-branches "$perennial_input"
-    ok "Set hack.perennial-branches = $perennial_input"
-  fi
+  local name i
+  for name in "${selected_names[@]}"; do
+    [[ -n "$name" ]] || continue
+    local cmd=""
+    for (( i=1; i<=${#alias_names[@]}; i++ )); do
+      if [[ "${alias_names[$i]}" == "$name" ]]; then
+        cmd="${alias_cmds[$i]}"
+        break
+      fi
+    done
+    [[ -n "$cmd" ]] || continue
+    git config --global "alias.${name}" "!git-hack ${cmd}"
+    ok "git ${name}  →  git-hack ${cmd}"
+  done
 
   print -r -- "" >&2
-  ok "hack is configured for this repository."
+  ok "Done! Run 'git config --global --list | grep ^alias' to review."
 }

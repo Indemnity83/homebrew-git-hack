@@ -1,63 +1,59 @@
 # MAIN
 main() {
   need_cmd git
-  need_cmd curl
-  need_cmd jq
+  need_cmd llm
+  need_cmd git-town
 
   local cmd="${1:-}"
   [[ $# -gt 0 ]] && shift
 
   case "$cmd" in
-    init)    cmd_init "$@" ;;
-    done)    in_git_repo || die "Run this inside a git repository."; cmd_done "$@" ;;
-    port)    in_git_repo || die "Run this inside a git repository."; cmd_port "$@" ;;
-    idea)    in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
-    issue)   in_git_repo || die "Run this inside a git repository."; cmd_issue "$@" ;;
-    commit)  in_git_repo || die "Run this inside a git repository."; cmd_commit "$@" ;;
-    propose) in_git_repo || die "Run this inside a git repository."; cmd_propose "$@" ;;
-    prune)   in_git_repo || die "Run this inside a git repository."; cmd_prune "$@" ;;
+    init)     cmd_init "$@" ;;
+    snapshot) in_git_repo || die "Run this inside a git repository."; cmd_snapshot "$@" ;;
+    done)     in_git_repo || die "Run this inside a git repository."; cmd_done "$@" ;;
+    port)     in_git_repo || die "Run this inside a git repository."; cmd_port "$@" ;;
+    idea)     in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
+    issue)    in_git_repo || die "Run this inside a git repository."; cmd_issue "$@" ;;
+    propose)  in_git_repo || die "Run this inside a git repository."; cmd_propose "$@" ;;
+    prune)    in_git_repo || die "Run this inside a git repository."; cmd_prune "$@" ;;
 
-    -h|--help|"")
+    -h|--help)
       cat <<'HELP'
-hack — git helper (zsh)
+git-hack — git workflow helper powered by llm + git-town
+
+Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 
 Commands:
-  hack init                      Configure hack for this repository
-  hack idea ["my idea"]          Create a new feature branch
-  hack issue <number>            Create a branch from a GitHub issue
-  hack commit                    Generate and create a commit
-  hack propose [remote]          Create/update a GitHub PR (default remote: origin)
-  hack port [sha] [branch]       Cherry-pick commit (defaults to current branch)
-  hack port --continue           Continue after resolving conflicts
-  hack done                      Clean up merged branch
-  hack prune                     Delete all merged branches (bulk cleanup)
-
-Per-repo config (stored in .git/config, set via 'hack init'):
-  hack.main-branch               The default base branch (e.g. main, develop)
-  hack.perennial-branches        Space-separated list of protected branches
-
-Global config:
-  OPENAI_API_KEY (required):
-    Option 1: Environment variable (add to ~/.zshrc or ~/.bashrc)
-      export OPENAI_API_KEY='sk-proj-...'
-
-    Option 2: Config file at ~/.config/hack/config
-      echo 'OPENAI_API_KEY="sk-proj-..."' > ~/.config/hack/config
-      chmod 600 ~/.config/hack/config
-
-  OPENAI_MODEL (optional, default: gpt-5.2)
+  git hack [idea]              Create a feature branch (llm names it, git-town tracks it)
+  git hack issue <number>      Create a branch from a GitHub issue
+  git hack snapshot [-c]       Generate and commit with an AI-written message
+  git hack propose             Create/update a GitHub PR via git-town
+  git hack port [sha] [branch] Cherry-pick a commit (defaults to current branch)
+  git hack port --continue     Continue after resolving conflicts
+  git hack done                Sync and clean up current branch (git town sync)
+  git hack prune               Delete orphaned branches (git town prune)
+  git hack init                Install global git aliases (git snap, git propose, …)
 
 Dependencies:
-  git, curl, jq
-  propose/done/prune: gh (GitHub CLI)
+  git, llm, git-town
+  issue: gh (GitHub CLI)
   optional: fzf (improved selection UI)
 
-Install fzf for better experience: brew install fzf
+Run 'git town config setup' once per repo to configure git-town.
 
 HELP
       ;;
+
+    "")
+      # No subcommand — go interactive idea mode
+      in_git_repo || die "Run this inside a git repository."
+      cmd_idea
+      ;;
+
     *)
-      die "Unknown command: $cmd (try: hack --help)"
+      # Unknown token — treat as idea description
+      in_git_repo || die "Run this inside a git repository."
+      cmd_idea "$cmd" "$@"
       ;;
   esac
 }
