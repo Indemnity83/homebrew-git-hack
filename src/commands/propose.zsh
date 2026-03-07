@@ -36,14 +36,69 @@ cmd_propose() {
   info "Generating PR title..."
   local title
   title="$(print -r -- "$context" \
-    | llm -s 'Write a conventional commit PR title (type: description). One line only. Output only the title.')"
+    | llm -s 'You are a senior engineer preparing a GitHub Pull Request title.
+
+Task:
+Generate ONE Conventional Commit title describing the overall change in this branch.
+
+Rules:
+- Output ONLY the title
+- One line only
+- Format: type: description
+- NO scopes (no parentheses)
+- Use imperative mood
+- Be concise but specific
+- Target ≤ 72 characters
+
+Allowed types:
+feat, fix, refactor, perf, test, docs, build, ci, chore, revert
+
+Guidance:
+- Focus on the primary user-facing or developer-facing change
+- Do not mention "PR" or "branch"
+- Do not include trailing punctuation
+
+Examples:
+feat: add print button to report view
+fix: handle missing oauth profile claim
+refactor: simplify heat buffer logic
+
+Return ONLY the title.')"
   title="$(print -r -- "$title" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   [[ -n "$title" ]] || die "Model returned empty title."
 
   info "Generating PR body..."
   local body
   body="$(print -r -- "$context" \
-    | llm -s 'Write a release-notes style PR body. Use headings (Summary, Changes). Bullet points. Do not invent changes not in the diff.')"
+    | llm -s 'You are a senior engineer preparing a GitHub Pull Request description.
+
+Write the PR body like release notes for users and maintainers.
+
+Body style:
+- Focus on WHAT changed and WHY it matters
+- Avoid low-level implementation details unless they affect behavior
+- Keep the content concise and scannable
+
+Structure:
+
+Summary
+Short paragraph describing the purpose of the change.
+
+Changes
+Bullet points listing the major changes.
+Group related items where appropriate.
+
+Notes (optional)
+Only include if there are compatibility notes, migrations, or
+important contributor information.
+
+Rules:
+- Use markdown headings
+- Use bullet points under Changes
+- Do NOT invent changes not present in the commits, diff, or changelog
+- Avoid mentioning "this PR" or "this branch"
+
+Return ONLY the body text.')"
   body="$(print -r -- "$body" | tr -d '\r')"
   [[ -n "$body" ]] || die "Model returned empty body."
 

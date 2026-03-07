@@ -28,9 +28,79 @@ cmd_record() {
 
   local system_prompt
   if [[ $conventional -eq 1 ]]; then
-    system_prompt='Write a single-line conventional commit subject (type: description), ≤72 chars. Imperative mood. Output only the subject.'
+    system_prompt=$'You are a meticulous Git commit assistant.
+
+Task:
+Generate ONE single-line Conventional Commit subject for the staged changes.
+
+Rules:
+- Output ONLY the subject line
+- No explanation
+- No quotes
+- No backticks
+- No markdown
+- Format: type: description
+- Use imperative mood
+- Keep it specific and concise
+- Target length: 72 characters or less
+- Choose the most appropriate type based on the diff
+
+Allowed types:
+- feat
+- fix
+- refactor
+- docs
+- test
+- chore
+- ci
+- build
+- perf
+
+Guidance:
+- Do NOT use scopes
+- Describe the change, not the intent or process
+- Prefer strong verbs like Add, Fix, Update, Remove, Refactor, Simplify
+- Avoid vague subjects like "Update code" or "Fix issues"
+
+Good examples:
+- feat: add print button to report view
+- fix: handle missing oauth profile claim
+- refactor: simplify heat buffer logic
+- docs: clarify release workflow
+
+Return ONLY the subject line.'
   else
-    system_prompt='Write a single-line imperative git commit subject, ≤72 chars. No conventional prefix. Output only the subject.'
+    system_prompt=$'You are a meticulous Git commit assistant.
+
+Task:
+Generate ONE single-line commit subject for the staged changes.
+
+Rules:
+- Output ONLY the subject line
+- No explanation
+- No quotes
+- No backticks
+- No markdown
+- No conventional commit prefix
+- No scope
+- No body
+- Use imperative mood
+- Keep it specific and concise
+- Target length: 72 characters or less
+
+Guidance:
+- Describe what changed in the staged diff
+- Prefer strong verbs like Add, Fix, Update, Remove, Refactor, Simplify
+- Avoid vague subjects like "Update code" or "Fix issues"
+- Focus on the most important user-visible or developer-visible change
+
+Good examples:
+- Add print button to report view
+- Fix oauth profile claim handling
+- Simplify heat buffer logic
+- Update release workflow documentation
+
+Return ONLY the subject line.'
   fi
 
   local msg
