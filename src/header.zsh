@@ -1,32 +1,23 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
-# hack — lightweight git helper with OpenAI
+# hack — git workflow helper powered by llm + git-town
 #
-# Subcommands (interactive):
-#   hack init
-#   hack idea [-i "my idea"]
-#   hack commit
+# Subcommands:
+#   hack idea ["my idea"]
+#   hack issue <number>
+#   hack commit [-c|--conventional]
 #   hack propose
-#   hack port [commit-sha] [target-branch]  (defaults to current branch)
+#   hack port [commit-sha] [target-branch]
+#   hack port --continue
 #   hack done
 #   hack prune
 #
 # Dependencies:
-#   git, curl, jq
-#   propose/done/prune: gh (GitHub CLI)
+#   git, llm, git-town
+#   issue: gh (GitHub CLI)
 #   optional: fzf (better UI for selections)
 
-# ---- CONFIG ----
-# Load API key from environment or config file
-CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/hack/config"
-
-# Source config file if it exists (allows it to set defaults)
-[[ -f "$CONFIG_FILE" ]] && source "$CONFIG_FILE"
-
-# Set model default
-: "${OPENAI_MODEL:=gpt-5.2}"
-
-# Hard safety limits so we don't accidentally ship massive diffs:
+# Hard safety limits to avoid shipping massive diffs:
 MAX_CHARS_DIFF_COMMIT=20000
 MAX_CHARS_DIFF_PROPOSE=50000
