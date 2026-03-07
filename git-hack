@@ -195,7 +195,41 @@ cmd_idea() {
 
   local branch
   branch="$(printf 'Idea: %s\nRepo: %s' "$idea" "$(basename "$(repo_root)")" \
-    | llm -s 'Propose ONE kebab-case git branch name, 60 chars max. Output only the name.')"
+    | llm -s $'You are a Git workflow assistant.
+
+Task:
+Generate ONE git branch name for the user\'s idea.
+
+Branch naming rules:
+- Output ONLY the branch name (no explanation or punctuation)
+- Lowercase only
+- Use kebab-case
+- Words separated by "-"
+- Optional category prefix followed by "/"
+
+Preferred prefixes:
+- feat/  (new feature)
+- fix/   (bug fix)
+- chore/ (maintenance or tooling)
+- refactor/
+- docs/
+- test/
+
+Additional constraints:
+- No spaces
+- No quotes
+- No backticks
+- Max length: 60 characters
+- Descriptive but concise
+- Avoid filler words like "the", "a", "stuff", "things"
+
+Good examples:
+- feat/add-meter-billing-ui
+- fix/authentik-oauth-profile-claim
+- chore/update-docker-compose
+- refactor/simplify-energy-buffer-logic
+
+Return ONLY the branch name.')"
   branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
   branch="$(sanitize_branch_name "$branch")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
@@ -282,9 +316,79 @@ cmd_record() {
 
   local system_prompt
   if [[ $conventional -eq 1 ]]; then
-    system_prompt='Write a single-line conventional commit subject (type: description), ≤72 chars. Imperative mood. Output only the subject.'
+    system_prompt=$'You are a meticulous Git commit assistant.
+
+Task:
+Generate ONE single-line Conventional Commit subject for the staged changes.
+
+Rules:
+- Output ONLY the subject line
+- No explanation
+- No quotes
+- No backticks
+- No markdown
+- Format: type: description
+- Use imperative mood
+- Keep it specific and concise
+- Target length: 72 characters or less
+- Choose the most appropriate type based on the diff
+
+Allowed types:
+- feat
+- fix
+- refactor
+- docs
+- test
+- chore
+- ci
+- build
+- perf
+
+Guidance:
+- Do NOT use scopes
+- Describe the change, not the intent or process
+- Prefer strong verbs like Add, Fix, Update, Remove, Refactor, Simplify
+- Avoid vague subjects like "Update code" or "Fix issues"
+
+Good examples:
+- feat: add print button to report view
+- fix: handle missing oauth profile claim
+- refactor: simplify heat buffer logic
+- docs: clarify release workflow
+
+Return ONLY the subject line.'
   else
-    system_prompt='Write a single-line imperative git commit subject, ≤72 chars. No conventional prefix. Output only the subject.'
+    system_prompt=$'You are a meticulous Git commit assistant.
+
+Task:
+Generate ONE single-line commit subject for the staged changes.
+
+Rules:
+- Output ONLY the subject line
+- No explanation
+- No quotes
+- No backticks
+- No markdown
+- No conventional commit prefix
+- No scope
+- No body
+- Use imperative mood
+- Keep it specific and concise
+- Target length: 72 characters or less
+
+Guidance:
+- Describe what changed in the staged diff
+- Prefer strong verbs like Add, Fix, Update, Remove, Refactor, Simplify
+- Avoid vague subjects like "Update code" or "Fix issues"
+- Focus on the most important user-visible or developer-visible change
+
+Good examples:
+- Add print button to report view
+- Fix oauth profile claim handling
+- Simplify heat buffer logic
+- Update release workflow documentation
+
+Return ONLY the subject line.'
   fi
 
   local msg
@@ -362,14 +466,69 @@ cmd_propose() {
   info "Generating PR title..."
   local title
   title="$(print -r -- "$context" \
-    | llm -s 'Write a conventional commit PR title (type: description). One line only. Output only the title.')"
+    | llm -s 'You are a senior engineer preparing a GitHub Pull Request title.
+
+Task:
+Generate ONE Conventional Commit title describing the overall change in this branch.
+
+Rules:
+- Output ONLY the title
+- One line only
+- Format: type: description
+- NO scopes (no parentheses)
+- Use imperative mood
+- Be concise but specific
+- Target ≤ 65 characters
+
+Allowed types:
+feat, fix, refactor, perf, test, docs, build, ci, chore, revert
+
+Guidance:
+- Focus on the primary user-facing or developer-facing change
+- Do not mention "PR" or "branch"
+- Do not include trailing punctuation
+
+Examples:
+feat: add print button to report view
+fix: handle missing oauth profile claim
+refactor: simplify heat buffer logic
+
+Return ONLY the title.')"
   title="$(print -r -- "$title" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   [[ -n "$title" ]] || die "Model returned empty title."
 
   info "Generating PR body..."
   local body
   body="$(print -r -- "$context" \
-    | llm -s 'Write a release-notes style PR body. Use headings (Summary, Changes). Bullet points. Do not invent changes not in the diff.')"
+    | llm -s 'You are a senior engineer preparing a GitHub Pull Request description.
+
+Write the PR body like release notes for users and maintainers.
+
+Body style:
+- Focus on WHAT changed and WHY it matters
+- Avoid low-level implementation details unless they affect behavior
+- Keep the content concise and scannable
+
+Structure:
+
+Summary
+Short paragraph describing the purpose of the change.
+
+Changes
+Bullet points listing the major changes.
+Group related items where appropriate.
+
+Notes (optional)
+Only include if there are compatibility notes, migrations, or
+important contributor information.
+
+Rules:
+- Use markdown headings
+- Use bullet points under Changes
+- Do NOT invent changes not present in the commits, diff, or changelog
+- Avoid mentioning "this PR" or "this branch"
+
+Return ONLY the body text.')"
   body="$(print -r -- "$body" | tr -d '\r')"
   [[ -n "$body" ]] || die "Model returned empty body."
 
