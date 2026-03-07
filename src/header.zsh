@@ -1,17 +1,18 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
-# hack — git workflow helper powered by llm + git-town
+# git-hack — git workflow helper powered by llm + git-town
 #
 # Subcommands:
-#   hack idea ["my idea"]
-#   hack issue <number>
-#   hack commit [-c|--conventional]
-#   hack propose
-#   hack port [commit-sha] [target-branch]
-#   hack port --continue
-#   hack done
-#   hack prune
+#   git hack ["idea"]
+#   git hack issue <number>
+#   git hack snapshot [-c|--conventional]
+#   git hack propose
+#   git hack port [commit-sha] [target-branch]
+#   git hack port --continue
+#   git hack done
+#   git hack prune
+#   git hack init
 #
 # Dependencies:
 #   git, llm, git-town
