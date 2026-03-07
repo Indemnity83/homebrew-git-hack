@@ -186,6 +186,16 @@ cmd_idea() {
   need_cmd llm
   need_cmd git-town
 
+  local auto_yes=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -y|--yes) auto_yes=1; shift ;;
+      --) shift; break ;;
+      -*) die "Unknown option: $1" ;;
+      *) break ;;
+    esac
+  done
+
   local idea="${1:-}"
 
   if [[ -z "$idea" ]]; then
@@ -235,7 +245,7 @@ Return ONLY the branch name.')"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
 
   info "Proposed branch: $branch"
-  if ! confirm "Create and switch to '$branch'?"; then
+  if [[ $auto_yes -eq 0 ]] && ! confirm "Create and switch to '$branch'?"; then
     local manual
     manual="$(prompt_choice "Enter the branch name you want to use:" "$branch")"
     branch="$(sanitize_branch_name "$manual")"
@@ -251,6 +261,16 @@ cmd_issue() {
   need_cmd llm
   need_cmd git-town
   gh auth status >/dev/null 2>&1 || die "GitHub CLI not authenticated. Run: gh auth login"
+
+  local auto_yes=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -y|--yes) auto_yes=1; shift ;;
+      --) shift; break ;;
+      -*) die "Unknown option: $1" ;;
+      *) break ;;
+    esac
+  done
 
   local issue_number="${1:-}"
   [[ -n "$issue_number" ]] || die "Usage: hack issue <number>"
@@ -276,7 +296,7 @@ cmd_issue() {
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
 
   info "Proposed branch: $branch"
-  if ! confirm "Create and switch to '$branch'?"; then
+  if [[ $auto_yes -eq 0 ]] && ! confirm "Create and switch to '$branch'?"; then
     local manual
     manual="$(prompt_choice "Enter the branch name you want to use:" "$branch")"
     branch="$(sanitize_branch_name "$manual")"
@@ -290,12 +310,13 @@ cmd_issue() {
 cmd_record() {
   need_cmd llm
 
-  local conventional=0 stage_all=0 push=0
+  local conventional=0 stage_all=0 push=0 auto_yes=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -a|--all)          stage_all=1; shift ;;
       -c|--conventional) conventional=1; shift ;;
       -p|--push)         push=1; shift ;;
+      -y|--yes)          auto_yes=1; shift ;;
       *) die "Unknown option: $1" ;;
     esac
   done
@@ -401,37 +422,54 @@ Return ONLY the subject line.'
   info "Proposed commit message:"
   print -r -- "  $msg" >&2
   print -r -- "" >&2
-  print -r -- "Options: (y) commit, (e) edit, (n) cancel" >&2
-  local choice
-  choice="$(prompt_choice "Choose y/e/n:" "y")"
 
-  case "$choice" in
-    y|Y)
-      git commit -m "$msg"
-      ok "Committed."
-      if [[ $push -eq 1 ]]; then
-        if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
-      fi
-      ;;
-    e|E)
-      local manual
-      manual="$(prompt_choice "Enter commit subject:" "$msg")"
-      manual="$(print -r -- "$manual" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
-      [[ -n "$manual" ]] || die "Empty message."
-      git commit -m "$manual"
-      ok "Committed."
-      if [[ $push -eq 1 ]]; then
-        if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
-      fi
-      ;;
-    n|N) die "Cancelled." ;;
-    *) die "Invalid choice." ;;
-  esac
+  if [[ $auto_yes -eq 1 ]]; then
+    git commit -m "$msg"
+    ok "Committed."
+    if [[ $push -eq 1 ]]; then
+      if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+    fi
+  else
+    print -r -- "Options: (y) commit, (e) edit, (n) cancel" >&2
+    local choice
+    choice="$(prompt_choice "Choose y/e/n:" "y")"
+
+    case "$choice" in
+      y|Y)
+        git commit -m "$msg"
+        ok "Committed."
+        if [[ $push -eq 1 ]]; then
+          if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+        fi
+        ;;
+      e|E)
+        local manual
+        manual="$(prompt_choice "Enter commit subject:" "$msg")"
+        manual="$(print -r -- "$manual" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+        [[ -n "$manual" ]] || die "Empty message."
+        git commit -m "$manual"
+        ok "Committed."
+        if [[ $push -eq 1 ]]; then
+          if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+        fi
+        ;;
+      n|N) die "Cancelled." ;;
+      *) die "Invalid choice." ;;
+    esac
+  fi
 }
 # SUBCOMMAND: propose
 cmd_propose() {
   need_cmd llm
   need_cmd git-town
+
+  local auto_yes=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -y|--yes) auto_yes=1; shift ;;
+      *) die "Unknown option: $1" ;;
+    esac
+  done
 
   local branch
   branch="$(current_branch)"
@@ -540,7 +578,7 @@ Return ONLY the body text.')"
   [[ "$(print -r -- "$body" | wc -l | tr -d ' ')" -gt 20 ]] \
     && print -r -- "  ... (truncated preview) ..." >&2
 
-  if ! confirm "Use this title/body for the PR?"; then
+  if [[ $auto_yes -eq 0 ]] && ! confirm "Use this title/body for the PR?"; then
     die "Cancelled."
   fi
 
@@ -840,10 +878,10 @@ git-hack — git workflow helper powered by llm + git-town
 Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 
 Commands:
-  git hack [idea]              Create a feature branch (llm names it, git-town tracks it)
-  git hack issue <number>      Create a branch from a GitHub issue
-  git hack record [-a] [-c] [-p]  AI commit message (-a: stage all, -p: push after)
-  git hack propose             Create/update a GitHub PR via git-town
+  git hack [-y] [idea]              Create a feature branch (llm names it, git-town tracks it)
+  git hack issue [-y] <number>      Create a branch from a GitHub issue
+  git hack record [-y] [-a] [-c] [-p]  AI commit message (-a: stage all, -p: push after)
+  git hack propose [-y]             Create/update a GitHub PR via git-town
   git hack pick [sha] [branch] Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack done                Delete merged branch and sync main

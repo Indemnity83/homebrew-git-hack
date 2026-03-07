@@ -2,12 +2,13 @@
 cmd_record() {
   need_cmd llm
 
-  local conventional=0 stage_all=0 push=0
+  local conventional=0 stage_all=0 push=0 auto_yes=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -a|--all)          stage_all=1; shift ;;
       -c|--conventional) conventional=1; shift ;;
       -p|--push)         push=1; shift ;;
+      -y|--yes)          auto_yes=1; shift ;;
       *) die "Unknown option: $1" ;;
     esac
   done
@@ -113,30 +114,39 @@ Return ONLY the subject line.'
   info "Proposed commit message:"
   print -r -- "  $msg" >&2
   print -r -- "" >&2
-  print -r -- "Options: (y) commit, (e) edit, (n) cancel" >&2
-  local choice
-  choice="$(prompt_choice "Choose y/e/n:" "y")"
 
-  case "$choice" in
-    y|Y)
-      git commit -m "$msg"
-      ok "Committed."
-      if [[ $push -eq 1 ]]; then
-        if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
-      fi
-      ;;
-    e|E)
-      local manual
-      manual="$(prompt_choice "Enter commit subject:" "$msg")"
-      manual="$(print -r -- "$manual" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
-      [[ -n "$manual" ]] || die "Empty message."
-      git commit -m "$manual"
-      ok "Committed."
-      if [[ $push -eq 1 ]]; then
-        if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
-      fi
-      ;;
-    n|N) die "Cancelled." ;;
-    *) die "Invalid choice." ;;
-  esac
+  if [[ $auto_yes -eq 1 ]]; then
+    git commit -m "$msg"
+    ok "Committed."
+    if [[ $push -eq 1 ]]; then
+      if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+    fi
+  else
+    print -r -- "Options: (y) commit, (e) edit, (n) cancel" >&2
+    local choice
+    choice="$(prompt_choice "Choose y/e/n:" "y")"
+
+    case "$choice" in
+      y|Y)
+        git commit -m "$msg"
+        ok "Committed."
+        if [[ $push -eq 1 ]]; then
+          if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+        fi
+        ;;
+      e|E)
+        local manual
+        manual="$(prompt_choice "Enter commit subject:" "$msg")"
+        manual="$(print -r -- "$manual" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+        [[ -n "$manual" ]] || die "Empty message."
+        git commit -m "$manual"
+        ok "Committed."
+        if [[ $push -eq 1 ]]; then
+          if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+        fi
+        ;;
+      n|N) die "Cancelled." ;;
+      *) die "Invalid choice." ;;
+    esac
+  fi
 }

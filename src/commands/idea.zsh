@@ -3,6 +3,16 @@ cmd_idea() {
   need_cmd llm
   need_cmd git-town
 
+  local auto_yes=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -y|--yes) auto_yes=1; shift ;;
+      --) shift; break ;;
+      -*) die "Unknown option: $1" ;;
+      *) break ;;
+    esac
+  done
+
   local idea="${1:-}"
 
   if [[ -z "$idea" ]]; then
@@ -52,7 +62,7 @@ Return ONLY the branch name.')"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
 
   info "Proposed branch: $branch"
-  if ! confirm "Create and switch to '$branch'?"; then
+  if [[ $auto_yes -eq 0 ]] && ! confirm "Create and switch to '$branch'?"; then
     local manual
     manual="$(prompt_choice "Enter the branch name you want to use:" "$branch")"
     branch="$(sanitize_branch_name "$manual")"

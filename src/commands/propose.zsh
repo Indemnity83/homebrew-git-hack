@@ -3,6 +3,14 @@ cmd_propose() {
   need_cmd llm
   need_cmd git-town
 
+  local auto_yes=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -y|--yes) auto_yes=1; shift ;;
+      *) die "Unknown option: $1" ;;
+    esac
+  done
+
   local branch
   branch="$(current_branch)"
   [[ -n "$branch" ]] || die "Detached HEAD; check out a branch first."
@@ -110,7 +118,7 @@ Return ONLY the body text.')"
   [[ "$(print -r -- "$body" | wc -l | tr -d ' ')" -gt 20 ]] \
     && print -r -- "  ... (truncated preview) ..." >&2
 
-  if ! confirm "Use this title/body for the PR?"; then
+  if [[ $auto_yes -eq 0 ]] && ! confirm "Use this title/body for the PR?"; then
     die "Cancelled."
   fi
 
