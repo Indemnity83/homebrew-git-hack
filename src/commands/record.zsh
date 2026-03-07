@@ -1,14 +1,18 @@
-# SUBCOMMAND: snapshot
-cmd_snapshot() {
+# SUBCOMMAND: record
+cmd_record() {
   need_cmd llm
 
-  local conventional=0
+  local conventional=0 stage_all=0 push=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      -a|--all)          stage_all=1; shift ;;
       -c|--conventional) conventional=1; shift ;;
+      -p|--push)         push=1; shift ;;
       *) die "Unknown option: $1" ;;
     esac
   done
+
+  [[ $stage_all -eq 1 ]] && git add -A
 
   has_staged_changes || {
     info "No staged changes."
@@ -47,6 +51,9 @@ cmd_snapshot() {
     y|Y)
       git commit -m "$msg"
       ok "Committed."
+      if [[ $push -eq 1 ]]; then
+        if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+      fi
       ;;
     e|E)
       local manual
@@ -55,6 +62,9 @@ cmd_snapshot() {
       [[ -n "$manual" ]] || die "Empty message."
       git commit -m "$manual"
       ok "Committed."
+      if [[ $push -eq 1 ]]; then
+        if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+      fi
       ;;
     n|N) die "Cancelled." ;;
     *) die "Invalid choice." ;;

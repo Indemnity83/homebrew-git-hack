@@ -6,12 +6,11 @@ set -euo pipefail
 # Subcommands:
 #   git hack ["idea"]
 #   git hack issue <number>
-#   git hack snapshot [-c|--conventional]
+#   git hack record [-a] [-c] [-p]
 #   git hack propose
-#   git hack port [commit-sha] [target-branch]
-#   git hack port --continue
+#   git hack pick [commit-sha] [target-branch]
+#   git hack pick --continue
 #   git hack done
-#   git hack prune
 #   git hack init
 #
 # Dependencies:

@@ -5,11 +5,10 @@ SRC_REST = src/utils.zsh \
            src/changelog.zsh \
            src/commands/idea.zsh \
            src/commands/issue.zsh \
-           src/commands/snapshot.zsh \
+           src/commands/record.zsh \
            src/commands/propose.zsh \
-           src/commands/port.zsh \
+           src/commands/pick.zsh \
            src/commands/done.zsh \
-           src/commands/prune.zsh \
            src/commands/init.zsh \
            src/main.zsh
 

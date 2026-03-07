@@ -1,20 +1,20 @@
 # SUBCOMMAND: init — install global git aliases for git-hack commands
 cmd_init() {
   # Parallel arrays: alias name, git-hack subcommand, description
-  local -a alias_names=(snap      propose   port                    done                          prune                    issue                       )
-  local -a alias_cmds=( snapshot  propose   port                    done                          prune                    issue                       )
+  local -a alias_names=(record  rap               pr        propose   pick          done                 )
+  local -a alias_cmds=( record  "record -a -p"    propose   propose   pick          done                 )
   local -a alias_descs=(
     "AI-generated commit message"
+    "Stage all, AI-commit, and push"
+    "Create or update a GitHub PR"
     "Create or update a GitHub PR"
     "Cherry-pick a commit"
-    "Sync and clean up current branch"
-    "Delete orphaned branches"
-    "Create branch from GitHub issue"
+    "Delete merged branch and sync main"
   )
 
   info "git-hack alias installer"
   print -r -- "Installs shortcuts in your global ~/.gitconfig" >&2
-  print -r -- "e.g. 'git snap'  instead of  'git hack snapshot'" >&2
+  print -r -- "e.g. 'git record'  instead of  'git hack record'" >&2
   print -r -- "" >&2
 
   local -a selected_names=()
