@@ -4,6 +4,8 @@ A git workflow helper that uses [`llm`](https://llm.datasette.io) for AI assista
 
 The result is a workflow that lets you move fast with LLM-assisted coding while still producing clear commits, clean PRs, and useful changelogs.
 
+See [WORKFLOW.md](WORKFLOW.md) for a full walkthrough, including how this pairs with squash merges, protected branches, and release-please for automated changelogs.
+
 ---
 
 ## The Workflow
@@ -12,36 +14,12 @@ The result is a workflow that lets you move fast with LLM-assisted coding while 
 idea → record → propose → done
 ```
 
-**1. Start an idea** — describe a change in plain English; an LLM names and creates the branch.
-
-**2. Hack on the code** — use your preferred coding assistant to implement the change.
-
-**3. Record progress** — stage your diff and let the LLM generate a concise, imperative commit message. Repeat as needed.
-
-**4. Propose** — when the feature is complete, `git hack propose` generates a Conventional Commit PR title and a summary body from the full diff. The PR is created and opened in your browser.
-
-**5. Merge** — squash merge on GitHub. The PR title becomes the commit message on main, keeping history clean and changelog-friendly.
-
-**6. Clean up** — `git hack done` verifies the branch was merged, deletes it locally and remotely, and updates main.
-
-### Example session
-
-```bash
-git hack "add export CSV feature"
-
-# implement with LLM assistance
-
-git hack record          # or: git rap (stage all + commit + push in one step)
-git hack record
-
-git hack propose         # PR created and opened
-
-# merge PR on GitHub
-
-git hack done
-```
-
-This pairs well with repositories that use protected main branches, CI via pull requests, and changelog tools like [release-please](https://github.com/googleapis/release-please) or [semantic-release](https://semantic-release.gitbook.io).
+| Step | Command | What it does |
+|------|---------|-------------|
+| Idea | `git hack "description"` | LLM names and creates the branch |
+| Record | `git hack record` | LLM generates a commit message from your staged diff |
+| Propose | `git hack propose` | LLM drafts a Conventional Commit PR title and body |
+| Done | `git hack done` | verifies merged, deletes branch, updates main |
 
 ---
 
