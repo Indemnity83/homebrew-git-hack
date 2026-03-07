@@ -4,30 +4,38 @@ A git workflow helper that uses [`llm`](https://llm.datasette.io) for AI assista
 
 ## Install
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/Indemnity83/hack/main/git-hack -o /usr/local/bin/git-hack && chmod +x /usr/local/bin/git-hack
-```
-
-Or if you prefer `~/.local/bin` (no `sudo` required):
+### Homebrew (recommended)
 
 ```bash
-mkdir -p ~/.local/bin && curl -fsSL https://raw.githubusercontent.com/Indemnity83/hack/main/git-hack -o ~/.local/bin/git-hack && chmod +x ~/.local/bin/git-hack
+brew tap indemnity83/git-hack
+brew install git-hack
 ```
 
-Make sure the target directory is on your `$PATH`. Once installed, both `git hack` and `git-hack` work.
+### Manual
 
-## Setup
-
-**Install dependencies:**
+**Install required dependencies:**
 
 ```bash
-brew install llm git-town fzf
+brew install llm git-town gh
 ```
+
+**Install the script:**
+
+<!-- RELEASE_INSTALL_BEGIN -->
+```markdown
+Manual binary install instructions are published automatically with each release.
+Until the first release is cut, use the Homebrew flow above.
+```
+<!-- RELEASE_INSTALL_END -->
+
+Or install to `~/.local/bin` (no `sudo` required) — replace `/usr/local/bin` above with `~/.local/bin` and ensure it is on your `$PATH`.
+
+Once installed, both `git hack` and `git-hack` work.
 
 **Configure your LLM** (choose any provider `llm` supports):
 
 ```bash
-llm install llm-claude-claude-sonnet-4-5   # Anthropic
+llm install llm-anthropic   # Anthropic (use with: llm -m claude-sonnet-4-5)
 # or: llm install llm-openai, llm install llm-gemini, etc.
 llm keys set anthropic
 ```
