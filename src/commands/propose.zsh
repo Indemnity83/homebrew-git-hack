@@ -10,6 +10,7 @@ cmd_propose() {
       --draft) draft=1; shift ;;
       --model) model="$2"; shift 2 ;;
       -m)      model="$2"; shift 2 ;;
+      --)      shift; break ;;
       -*)
         local flags="${1:1}"; shift
         for (( i=1; i<=${#flags}; i++ )); do
