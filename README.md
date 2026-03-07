@@ -16,7 +16,7 @@ brew install git-hack
 **Install dependencies:**
 
 ```bash
-brew install llm git-town fzf
+brew install llm git-town gh fzf
 ```
 
 <!-- RELEASE_INSTALL_BEGIN -->
