@@ -75,7 +75,7 @@ This ensures that all changes flow through PRs.
 
 It works by scanning commit history on `main` for **Conventional Commit messages**, such as:
 
-```
+```text
 feat(ui): add print button to reports
 fix(api): handle missing auth token
 chore: update dependencies
@@ -98,7 +98,7 @@ Because of this, **PR titles become extremely important**, since squash merging 
 
 The complete development cycle looks like this:
 
-```
+```text
 idea → hack → record → propose → merge → done
 ```
 
@@ -110,13 +110,13 @@ Each stage is supported by a `git hack` command.
 
 Begin by describing the change you want to make.
 
-```
+```bash
 git hack idea "add a new button to the main UI to allow the user to print a report"
 ```
 
 The tool sends the description to an LLM and proposes a branch name such as:
 
-```
+```text
 feat/add-print-report-button
 ```
 
@@ -135,7 +135,7 @@ At this point you open your coding assistant (Claude, Codex, etc.) and begin imp
 
 Example prompt:
 
-```
+```text
 Add a print button to the report view that sends the report to the browser print dialog.
 ```
 
@@ -149,14 +149,14 @@ The goal is to move quickly during this phase.
 
 When you reach a meaningful checkpoint, record a commit.
 
-```
+```bash
 git add .
 git hack record
 ```
 
 If nothing is staged, `git hack record` automatically launches:
 
-```
+```bash
 git add -p
 ```
 
@@ -164,7 +164,7 @@ This allows you to interactively stage only the changes you want.
 
 The staged diff is sent to an LLM which generates a short **imperative commit message** such as:
 
-```
+```text
 Add print button to report UI
 ```
 
@@ -174,7 +174,7 @@ You may repeat this step as often as needed.
 
 Example:
 
-```
+```bash
 git hack record
 git hack record
 git hack record
@@ -188,7 +188,7 @@ This creates a clear narrative of how the feature evolved.
 
 When the feature is complete, generate a pull request.
 
-```
+```bash
 git hack propose
 ```
 
@@ -201,13 +201,13 @@ The model generates:
 
 Example output:
 
-```
+```text
 feat(ui): add print button for reports
 ```
 
 PR body:
 
-```
+```text
 Adds a print button to the report view so users can quickly print reports.
 
 Changes include:
@@ -249,7 +249,7 @@ Squash merging ensures that:
 
 Example final commit on `main`:
 
-```
+```text
 feat(ui): add print button for reports
 ```
 
@@ -259,7 +259,7 @@ feat(ui): add print button for reports
 
 After merging, return to your terminal and run:
 
-```
+```bash
 git hack done
 ```
 
@@ -281,7 +281,7 @@ This workflow produces two useful histories.
 
 ## Feature Branch History
 
-```
+```text
 Add print button to report UI
 Adjust report layout
 Fix print handler bug
@@ -291,7 +291,7 @@ These commits document development progress.
 
 ## Main Branch History
 
-```
+```text
 feat(ui): add print button for reports
 fix(auth): handle expired tokens
 feat(api): add export endpoint
@@ -319,7 +319,7 @@ It allows developers to move quickly without sacrificing repository quality.
 
 # Example End-to-End Session
 
-```
+```bash
 git hack idea "add CSV export to reports"
 
 # implement feature with AI

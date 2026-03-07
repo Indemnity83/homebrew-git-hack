@@ -51,7 +51,9 @@ cmd_record() {
     y|Y)
       git commit -m "$msg"
       ok "Committed."
-      [[ $push -eq 1 ]] && git push
+      if [[ $push -eq 1 ]]; then
+        if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+      fi
       ;;
     e|E)
       local manual
@@ -60,7 +62,9 @@ cmd_record() {
       [[ -n "$manual" ]] || die "Empty message."
       git commit -m "$manual"
       ok "Committed."
-      [[ $push -eq 1 ]] && git push
+      if [[ $push -eq 1 ]]; then
+        if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+      fi
       ;;
     n|N) die "Cancelled." ;;
     *) die "Invalid choice." ;;

@@ -10,7 +10,7 @@ See [WORKFLOW.md](WORKFLOW.md) for a full walkthrough, including how this pairs 
 
 ## The Workflow
 
-```
+```text
 idea → record → propose → done
 ```
 
