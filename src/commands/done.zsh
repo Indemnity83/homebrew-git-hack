@@ -9,16 +9,11 @@ cmd_done() {
   [[ "$current_branch" == "$main_branch" ]] \
     && die "Already on '${main_branch}'. Run from a feature branch."
 
-  # Fetch with --prune so stale remote tracking refs (e.g. the deleted PR
-  # branch) are removed. This lets git town delete know the remote is gone
-  # and prevents it from trying to delete a branch that no longer exists.
-  git fetch --prune --quiet origin 2>/dev/null || true
-  if ! git merge-base --is-ancestor HEAD "origin/${main_branch}" 2>/dev/null; then
-    die "Branch '${current_branch}' is not merged into ${main_branch}. Merge the PR first."
-  fi
-
-  info "Deleting '${current_branch}' and syncing ${main_branch}..."
+  # Sync fetches with --prune (removes stale remote tracking refs for deleted
+  # branches) and updates main. git town delete then acts as the merge guard —
+  # it fails if the branch has not been merged, which aborts the script via
+  # set -e. No second sync needed; git town sync already updated main.
+  git town sync
   git town delete
   git checkout --quiet "$main_branch"
-  git town sync
 }
