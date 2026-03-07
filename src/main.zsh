@@ -9,13 +9,12 @@ main() {
 
   case "$cmd" in
     init)     cmd_init "$@" ;;
-    snapshot) in_git_repo || die "Run this inside a git repository."; cmd_snapshot "$@" ;;
+    record)   in_git_repo || die "Run this inside a git repository."; cmd_record "$@" ;;
     done)     in_git_repo || die "Run this inside a git repository."; cmd_done "$@" ;;
-    port)     in_git_repo || die "Run this inside a git repository."; cmd_port "$@" ;;
+    pick)     in_git_repo || die "Run this inside a git repository."; cmd_pick "$@" ;;
     idea)     in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
     issue)    in_git_repo || die "Run this inside a git repository."; cmd_issue "$@" ;;
     propose)  in_git_repo || die "Run this inside a git repository."; cmd_propose "$@" ;;
-    prune)    in_git_repo || die "Run this inside a git repository."; cmd_prune "$@" ;;
 
     -h|--help)
       cat <<'HELP'
@@ -26,12 +25,11 @@ Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 Commands:
   git hack [idea]              Create a feature branch (llm names it, git-town tracks it)
   git hack issue <number>      Create a branch from a GitHub issue
-  git hack snapshot [-c]       Generate and commit with an AI-written message
+  git hack record [-c]         Generate and commit with an AI-written message
   git hack propose             Create/update a GitHub PR via git-town
-  git hack port [sha] [branch] Cherry-pick a commit (defaults to current branch)
-  git hack port --continue     Continue after resolving conflicts
-  git hack done                Sync and clean up current branch (git town sync)
-  git hack prune               Delete orphaned branches (git town prune)
+  git hack pick [sha] [branch] Cherry-pick a commit (defaults to current branch)
+  git hack pick --continue     Continue after resolving conflicts
+  git hack done                Delete merged branch and sync main
   git hack init                Install global git aliases (git snap, git propose, …)
 
 Dependencies:
