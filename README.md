@@ -2,6 +2,49 @@
 
 A git workflow helper that uses [`llm`](https://llm.datasette.io) for AI assistance and [`git-town`](https://www.git-town.com) for branch management. It automates the repetitive parts of your workflow: naming branches, writing commit messages, and drafting pull requests.
 
+The result is a workflow that lets you move fast with LLM-assisted coding while still producing clear commits, clean PRs, and useful changelogs.
+
+---
+
+## The Workflow
+
+```
+idea → record → propose → done
+```
+
+**1. Start an idea** — describe a change in plain English; an LLM names and creates the branch.
+
+**2. Hack on the code** — use your preferred coding assistant to implement the change.
+
+**3. Record progress** — stage your diff and let the LLM generate a concise, imperative commit message. Repeat as needed.
+
+**4. Propose** — when the feature is complete, `git hack propose` generates a Conventional Commit PR title and a summary body from the full diff. The PR is created and opened in your browser.
+
+**5. Merge** — squash merge on GitHub. The PR title becomes the commit message on main, keeping history clean and changelog-friendly.
+
+**6. Clean up** — `git hack done` verifies the branch was merged, deletes it locally and remotely, and updates main.
+
+### Example session
+
+```bash
+git hack "add export CSV feature"
+
+# implement with LLM assistance
+
+git hack record          # or: git rap (stage all + commit + push in one step)
+git hack record
+
+git hack propose         # PR created and opened
+
+# merge PR on GitHub
+
+git hack done
+```
+
+This pairs well with repositories that use protected main branches, CI via pull requests, and changelog tools like [release-please](https://github.com/googleapis/release-please) or [semantic-release](https://semantic-release.gitbook.io).
+
+---
+
 ## Install
 
 ### Homebrew (recommended)
@@ -53,7 +96,7 @@ git town config setup
 git hack init
 ```
 
-This adds shortcuts like `git snap`, `git propose`, etc. to your `~/.gitconfig`.
+This adds shortcuts like `git record`, `git pr`, etc. to your `~/.gitconfig`.
 
 ## Dependencies
 
@@ -72,9 +115,9 @@ This adds shortcuts like `git snap`, `git propose`, etc. to your `~/.gitconfig`.
 Creates a new feature branch. With no subcommand, defaults to `idea`. AI suggests a branch name; you confirm or edit before the branch is created. git-town tracks the parent branch automatically.
 
 ```bash
-git hack                                    # interactive: prompts for description
-git hack "add dark mode toggle"             # branch name suggested immediately
-git hack idea "add dark mode toggle"        # explicit subcommand form
+git hack                             # interactive: prompts for description
+git hack "add dark mode toggle"      # branch name suggested immediately
+git hack idea "add dark mode toggle" # explicit subcommand form
 ```
 
 ### `git hack issue <number>`
@@ -85,17 +128,19 @@ Same as `idea`, but fetches the title and body from a GitHub issue to generate t
 git hack issue 42
 ```
 
-### `git hack snapshot [-c|--conventional]`
+### `git hack record [-a] [-c] [-p]`
 
 Generates a commit message from your staged diff. If nothing is staged, offers to run `git add -p`. You can accept, edit, or cancel before the commit is made.
 
 ```bash
-git add -p
-git hack snapshot              # imperative subject line
-git hack snapshot --conventional   # conventional commit prefix (feat:, fix:, …)
+git hack record              # commit staged changes with AI-generated message
+git hack record -a           # stage all changes first (git add -A)
+git hack record -p           # push after committing
+git hack record -a -p        # stage all, commit, and push
+git hack record -c           # conventional commit prefix (feat:, fix:, …)
 ```
 
-Also available as `git snap` after running `git hack init`.
+Also available as `git record` and `git rap` (stage all + commit + push) after running `git hack init`.
 
 ### `git hack propose`
 
@@ -105,32 +150,28 @@ Creates or updates a GitHub PR for the current branch using `git town propose`. 
 git hack propose
 ```
 
-### `git hack port [sha] [branch]`
+Also available as `git pr` and `git propose` after running `git hack init`.
+
+### `git hack pick [sha] [branch]`
 
 Cherry-picks a commit onto another branch. Without arguments, shows an interactive list of recent commits from the default branch (uses `fzf` if available). Returns to your original branch when done.
 
 ```bash
-git hack port                        # interactive: pick commit
-git hack port abc1234                # cherry-pick onto current branch
-git hack port abc1234 release/v2     # cherry-pick onto a specific branch
-git hack port --continue             # resume after resolving conflicts
+git hack pick                        # interactive: pick commit
+git hack pick abc1234                # cherry-pick onto current branch
+git hack pick abc1234 release/v2     # cherry-pick onto a specific branch
+git hack pick --continue             # resume after resolving conflicts
 ```
 
 ### `git hack done`
 
-Runs `git town sync`, which detects merged PRs, switches to the parent branch, and cleans up the local branch automatically.
+Verifies the current branch has been merged into main, then deletes it locally and remotely, switches to main, and pulls the latest.
 
 ```bash
 git hack done
 ```
 
-### `git hack prune`
-
-Runs `git town prune` to delete orphaned local branches.
-
-```bash
-git hack prune
-```
+Also available as `git done` after running `git hack init`.
 
 ### `git hack init`
 
@@ -146,9 +187,9 @@ Aliases installed:
 
 | Alias | Expands to |
 |-------|-----------|
-| `git snap` | `git hack snapshot` |
+| `git record` | `git hack record` |
+| `git rap` | `git hack record -a -p` |
+| `git pr` | `git hack propose` |
 | `git propose` | `git hack propose` |
-| `git port` | `git hack port` |
+| `git pick` | `git hack pick` |
 | `git done` | `git hack done` |
-| `git prune` | `git hack prune` |
-| `git issue` | `git hack issue` |
