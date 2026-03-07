@@ -3,16 +3,19 @@ cmd_idea() {
   need_cmd llm
   need_cmd git-town
 
-  local auto_yes=0
+  local auto_yes=0 model=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --yes) auto_yes=1; shift ;;
+      --yes)   auto_yes=1; shift ;;
+      --model) model="$2"; shift 2 ;;
+      -m)      model="$2"; shift 2 ;;
       --) shift; break ;;
       -*)
         local flags="${1:1}"; shift
         for (( i=1; i<=${#flags}; i++ )); do
           case "${flags[i]}" in
             y) auto_yes=1 ;;
+            m) die "-m requires an argument; use -m <model> as a standalone flag" ;;
             *) die "Unknown option: -${flags[i]}" ;;
           esac
         done
@@ -28,9 +31,12 @@ cmd_idea() {
     [[ -n "$idea" ]] || die "No idea provided."
   fi
 
+  local llm_args=()
+  [[ -n "$model" ]] && llm_args=(-m "$model")
+
   local branch
   branch="$(printf 'Idea: %s\nRepo: %s' "$idea" "$(basename "$(repo_root)")" \
-    | llm -s $'You are a Git workflow assistant.
+    | llm "${llm_args[@]}" -s $'You are a Git workflow assistant.
 
 Task:
 Generate ONE git branch name for the user\'s idea.

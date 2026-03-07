@@ -5,16 +5,19 @@ cmd_issue() {
   need_cmd git-town
   gh auth status >/dev/null 2>&1 || die "GitHub CLI not authenticated. Run: gh auth login"
 
-  local auto_yes=0
+  local auto_yes=0 model=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --yes) auto_yes=1; shift ;;
+      --yes)   auto_yes=1; shift ;;
+      --model) model="$2"; shift 2 ;;
+      -m)      model="$2"; shift 2 ;;
       --) shift; break ;;
       -*)
         local flags="${1:1}"; shift
         for (( i=1; i<=${#flags}; i++ )); do
           case "${flags[i]}" in
             y) auto_yes=1 ;;
+            m) die "-m requires an argument; use -m <model> as a standalone flag" ;;
             *) die "Unknown option: -${flags[i]}" ;;
           esac
         done
@@ -38,10 +41,13 @@ cmd_issue() {
   idea="$(printf '%s\n\n%s' "$issue_title" "$issue_body")"
   idea="$(truncate_str "$idea" 1500)"
 
+  local llm_args=()
+  [[ -n "$model" ]] && llm_args=(-m "$model")
+
   local branch
   branch="$(printf 'GitHub issue #%s: %s\n\n%s\n\nRepo: %s' \
     "$issue_number" "$issue_title" "$idea" "$(basename "$(repo_root)")" \
-    | llm -s 'Propose ONE kebab-case git branch name, 60 chars max. Output only the name.')"
+    | llm "${llm_args[@]}" -s 'Propose ONE kebab-case git branch name, 60 chars max. Output only the name.')"
   branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
   branch="$(sanitize_branch_name "$branch")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."

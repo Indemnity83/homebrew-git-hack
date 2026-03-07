@@ -2,13 +2,16 @@
 cmd_record() {
   need_cmd llm
 
-  local conventional=0 stage_all=0 push=0 auto_yes=0
+  local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 model=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --all)          stage_all=1; shift ;;
       --conventional) conventional=1; shift ;;
       --push)         push=1; shift ;;
       --yes)          auto_yes=1; shift ;;
+      --amend)        amend=1; shift ;;
+      --model)        model="$2"; shift 2 ;;
+      -m)             model="$2"; shift 2 ;;
       --)             shift; break ;;
       -*)
         local flags="${1:1}"; shift
@@ -18,6 +21,7 @@ cmd_record() {
             c) conventional=1 ;;
             p) push=1 ;;
             y) auto_yes=1 ;;
+            m) die "-m requires an argument; use -m <model> as a standalone flag" ;;
             *) die "Unknown option: -${flags[i]}" ;;
           esac
         done
@@ -117,10 +121,13 @@ Good examples:
 Return ONLY the subject line.'
   fi
 
+  local llm_args=()
+  [[ -n "$model" ]] && llm_args=(-m "$model")
+
   local msg
   msg="$(printf 'Repo: %s\nBranch: %s\n\nSTAGED DIFF:\n%s' \
     "$(basename "$(repo_root)")" "$(current_branch)" "$diff_trunc" \
-    | llm -s "$system_prompt")"
+    | llm "${llm_args[@]}" -s "$system_prompt")"
   msg="$(print -r -- "$msg" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   [[ -n "$msg" ]] || die "Empty commit message from model."
 
@@ -128,38 +135,39 @@ Return ONLY the subject line.'
   print -r -- "  $msg" >&2
   print -r -- "" >&2
 
-  if [[ $auto_yes -eq 1 ]]; then
-    git commit -m "$msg"
-    ok "Committed."
+  local amend_flag=() push_flag=()
+  [[ $amend -eq 1 ]] && amend_flag=(--amend)
+  [[ $amend -eq 1 ]] && push_flag=(--force-with-lease)
+
+  _do_commit() {
+    local subject="$1"
+    git commit "${amend_flag[@]}" -m "$subject"
+    [[ $amend -eq 1 ]] && ok "Amended." || ok "Committed."
     if [[ $push -eq 1 ]]; then
-      if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+      if git push "${push_flag[@]}"; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
     fi
+  }
+
+  if [[ $auto_yes -eq 1 ]]; then
+    _do_commit "$msg"
   else
     print -r -- "Options: (y) commit, (e) edit, (n) cancel" >&2
     local choice
     choice="$(prompt_choice "Choose y/e/n:" "y")"
 
     case "$choice" in
-      y|Y)
-        git commit -m "$msg"
-        ok "Committed."
-        if [[ $push -eq 1 ]]; then
-          if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
-        fi
-        ;;
+      y|Y) _do_commit "$msg" ;;
       e|E)
         local manual
         manual="$(prompt_choice "Enter commit subject:" "$msg")"
         manual="$(print -r -- "$manual" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
         [[ -n "$manual" ]] || die "Empty message."
-        git commit -m "$manual"
-        ok "Committed."
-        if [[ $push -eq 1 ]]; then
-          if git push; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
-        fi
+        _do_commit "$manual"
         ;;
       n|N) die "Cancelled." ;;
       *) die "Invalid choice." ;;
     esac
   fi
+
+  unfunction _do_commit
 }
