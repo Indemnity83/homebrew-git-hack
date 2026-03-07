@@ -1,0 +1,72 @@
+name: Update Release PR
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+jobs:
+  update:
+    if: startsWith(github.head_ref, 'release-please--')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Compute version and sha256
+        id: info
+        run: |
+          VERSION=$(python3 -c "import json; print(json.load(open('.release-please-manifest.json'))['.'])")
+          TAG="v${VERSION}"
+          URL="https://github.com/indemnity83/homebrew-git-hack/releases/download/${TAG}/git-hack"
+          SHA256=$(shasum -a 256 git-hack | cut -d' ' -f1)
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+
+      - name: Update formula
+        run: |
+          sed -i "s|url \".*\"|url \"${{ steps.info.outputs.url }}\"|" Formula/git-hack.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${{ steps.info.outputs.sha256 }}\"|" Formula/git-hack.rb
+
+      - name: Update README
+        run: |
+          TAG="${{ steps.info.outputs.tag }}"
+          SHA256="${{ steps.info.outputs.sha256 }}"
+          python3 - <<EOF
+import re
+
+content = open('README.md').read()
+
+new_block = """<!-- RELEASE_INSTALL_BEGIN -->
+\`\`\`bash
+curl -fsSL https://github.com/indemnity83/homebrew-git-hack/releases/download/$TAG/git-hack -o /tmp/git-hack
+echo "$SHA256  /tmp/git-hack" | shasum -a 256 -c
+install -m 755 /tmp/git-hack /usr/local/bin/git-hack
+\`\`\`
+<!-- RELEASE_INSTALL_END -->"""
+
+content = re.sub(
+    r'<!-- RELEASE_INSTALL_BEGIN -->.*?<!-- RELEASE_INSTALL_END -->',
+    new_block,
+    content,
+    flags=re.DOTALL
+)
+
+open('README.md', 'w').write(content)
+EOF
+
+      - name: Commit updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/git-hack.rb README.md
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update formula and install docs for ${{ steps.info.outputs.tag }}"
+            git push origin ${{ github.head_ref }}
+          fi
