@@ -7,7 +7,6 @@ class GitHack < Formula
 
   depends_on "git-town"
   depends_on "simonw/llm/llm"
-  depends_on "fzf"
   depends_on "gh"
 
   def install
@@ -21,6 +20,9 @@ class GitHack < Formula
 
       Optional: install git shorthand aliases (snap, propose, etc.):
         git hack init
+
+      For improved selection UI, install fzf:
+        brew install fzf
     EOS
   end
 

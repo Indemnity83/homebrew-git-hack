@@ -34,7 +34,7 @@ Once installed, both `git hack` and `git-hack` work.
 **Configure your LLM** (choose any provider `llm` supports):
 
 ```bash
-llm install llm-claude-claude-sonnet-4-5   # Anthropic
+llm install llm-anthropic   # Anthropic (use with: llm -m claude-sonnet-4-5)
 # or: llm install llm-openai, llm install llm-gemini, etc.
 llm keys set anthropic
 ```

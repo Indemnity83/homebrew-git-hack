@@ -15,27 +15,40 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name }}
-          token: ${{ secrets.PERSONAL_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
 
       - name: Upload git-hack script as release asset
         run: |
           gh release upload ${{ github.event.release.tag_name }} git-hack --clobber
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Compute sha256
         id: sha
         run: |
           TAG="${{ github.event.release.tag_name }}"
           URL="https://github.com/indemnity83/homebrew-git-hack/releases/download/${TAG}/git-hack"
-          SHA256=$(curl -sL "$URL" | shasum -a 256 | cut -d' ' -f1)
+          SHA256=""
+          for i in 1 2 3 4 5; do
+            CONTENT=$(curl -fsSL --retry 3 "$URL" 2>/dev/null)
+            if [ -n "$CONTENT" ]; then
+              SHA256=$(echo "$CONTENT" | shasum -a 256 | cut -d' ' -f1)
+              break
+            fi
+            echo "Attempt $i failed, retrying in ${i}s..."
+            sleep "$i"
+          done
+          if [ -z "$SHA256" ]; then
+            echo "Failed to download asset after 5 attempts"
+            exit 1
+          fi
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
         with:
           ref: main
-          token: ${{ secrets.PERSONAL_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
 
       - name: Update formula and README
         run: |
