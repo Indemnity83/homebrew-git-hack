@@ -27,37 +27,15 @@ jobs:
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
 
-      - name: Update formula
+      - name: Update formula and README
         run: |
-          sed -i "s|url \".*\"|url \"${{ steps.info.outputs.url }}\"|" Formula/git-hack.rb
-          sed -i "s|sha256 \".*\"|sha256 \"${{ steps.info.outputs.sha256 }}\"|" Formula/git-hack.rb
-
-      - name: Update README
-        run: |
-          TAG="${{ steps.info.outputs.tag }}"
+          URL="${{ steps.info.outputs.url }}"
           SHA256="${{ steps.info.outputs.sha256 }}"
-          python3 - <<EOF
-import re
-
-content = open('README.md').read()
-
-new_block = """<!-- RELEASE_INSTALL_BEGIN -->
-\`\`\`bash
-curl -fsSL https://github.com/indemnity83/homebrew-git-hack/releases/download/$TAG/git-hack -o /tmp/git-hack
-echo "$SHA256  /tmp/git-hack" | shasum -a 256 -c
-install -m 755 /tmp/git-hack /usr/local/bin/git-hack
-\`\`\`
-<!-- RELEASE_INSTALL_END -->"""
-
-content = re.sub(
-    r'<!-- RELEASE_INSTALL_BEGIN -->.*?<!-- RELEASE_INSTALL_END -->',
-    new_block,
-    content,
-    flags=re.DOTALL
-)
-
-open('README.md', 'w').write(content)
-EOF
+          TAG="${{ steps.info.outputs.tag }}"
+          sed -i "s|url \".*\"|url \"${URL}\"|" Formula/git-hack.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/git-hack.rb
+          sed -i "s|releases/download/v[^/]*/git-hack -o|releases/download/${TAG}/git-hack -o|" README.md
+          sed -i "s|echo \".*  /tmp/git-hack\"|echo \"${SHA256}  /tmp/git-hack\"|" README.md
 
       - name: Commit updates
         run: |
