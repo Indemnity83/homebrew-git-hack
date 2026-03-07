@@ -6,7 +6,16 @@ cmd_propose() {
   local auto_yes=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -y|--yes) auto_yes=1; shift ;;
+      --yes) auto_yes=1; shift ;;
+      -*)
+        local flags="${1:1}"; shift
+        for (( i=1; i<=${#flags}; i++ )); do
+          case "${flags[i]}" in
+            y) auto_yes=1 ;;
+            *) die "Unknown option: -${flags[i]}" ;;
+          esac
+        done
+        ;;
       *) die "Unknown option: $1" ;;
     esac
   done

@@ -5,10 +5,23 @@ cmd_record() {
   local conventional=0 stage_all=0 push=0 auto_yes=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -a|--all)          stage_all=1; shift ;;
-      -c|--conventional) conventional=1; shift ;;
-      -p|--push)         push=1; shift ;;
-      -y|--yes)          auto_yes=1; shift ;;
+      --all)          stage_all=1; shift ;;
+      --conventional) conventional=1; shift ;;
+      --push)         push=1; shift ;;
+      --yes)          auto_yes=1; shift ;;
+      --)             shift; break ;;
+      -*)
+        local flags="${1:1}"; shift
+        for (( i=1; i<=${#flags}; i++ )); do
+          case "${flags[i]}" in
+            a) stage_all=1 ;;
+            c) conventional=1 ;;
+            p) push=1 ;;
+            y) auto_yes=1 ;;
+            *) die "Unknown option: -${flags[i]}" ;;
+          esac
+        done
+        ;;
       *) die "Unknown option: $1" ;;
     esac
   done
