@@ -478,7 +478,7 @@ Rules:
 - NO scopes (no parentheses)
 - Use imperative mood
 - Be concise but specific
-- Target ≤ 72 characters
+- Target ≤ 65 characters
 
 Allowed types:
 feat, fix, refactor, perf, test, docs, build, ci, chore, revert
