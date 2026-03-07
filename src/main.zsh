@@ -25,7 +25,7 @@ Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 Commands:
   git hack [idea]              Create a feature branch (llm names it, git-town tracks it)
   git hack issue <number>      Create a branch from a GitHub issue
-  git hack record [-c]         Generate and commit with an AI-written message
+  git hack record [-a] [-c] [-p]  AI commit message (-a: stage all, -p: push after)
   git hack propose             Create/update a GitHub PR via git-town
   git hack pick [sha] [branch] Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
