@@ -1,0 +1,23 @@
+name: Build (PR)
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  test:
+    # Skip: draft PRs, release-please PRs
+    if: |
+      github.event.pull_request.draft == false &&
+      !startsWith(github.head_ref, 'release-please--')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: make check
+
+      - name: Run tests
+        run: make test

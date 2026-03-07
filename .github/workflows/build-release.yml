@@ -1,0 +1,80 @@
+name: Build (Release)
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          token: ${{ secrets.PERSONAL_TOKEN }}
+
+      - name: Upload git-hack script as release asset
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} git-hack --clobber
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+
+      - name: Compute sha256
+        id: sha
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          URL="https://github.com/indemnity83/homebrew-git-hack/releases/download/${TAG}/git-hack"
+          SHA256=$(curl -sL "$URL" | shasum -a 256 | cut -d' ' -f1)
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.PERSONAL_TOKEN }}
+
+      - name: Update formula and README
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          URL="${{ steps.sha.outputs.url }}"
+          SHA256="${{ steps.sha.outputs.sha256 }}"
+
+          # Update formula
+          sed -i "s|url \".*\"|url \"${URL}\"|" Formula/git-hack.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/git-hack.rb
+
+          # Update README manual install block
+          python3 - <<EOF
+import re
+
+content = open('README.md').read()
+
+new_block = f"""<!-- RELEASE_INSTALL_BEGIN -->
+\`\`\`bash
+curl -fsSL https://github.com/indemnity83/homebrew-git-hack/releases/download/{TAG}/git-hack -o /tmp/git-hack
+echo "{SHA256}  /tmp/git-hack" | shasum -a 256 -c
+install -m 755 /tmp/git-hack /usr/local/bin/git-hack
+\`\`\`
+<!-- RELEASE_INSTALL_END -->"""
+
+content = re.sub(
+    r'<!-- RELEASE_INSTALL_BEGIN -->.*?<!-- RELEASE_INSTALL_END -->',
+    new_block,
+    content,
+    flags=re.DOTALL
+)
+
+open('README.md', 'w').write(content)
+EOF
+
+      - name: Commit formula update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/git-hack.rb README.md
+          git commit -m "chore: update formula and install docs for ${{ github.event.release.tag_name }}"
+          git push origin main

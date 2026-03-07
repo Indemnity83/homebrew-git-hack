@@ -38,17 +38,4 @@ install-hooks:
 	git config core.hooksPath .githooks
 	@echo "Git hooks installed (core.hooksPath = .githooks)."
 
-# Usage: make release VERSION=v0.1.0
-release: git-hack
-	@[ -n "$(VERSION)" ] || { echo "Usage: make release VERSION=v0.1.0"; exit 1; }
-	git tag $(VERSION)
-	git push origin $(VERSION)
-	@echo ""
-	@echo "Tag $(VERSION) pushed. Now:"
-	@echo "  1. Create a GitHub Release from the tag:"
-	@echo "     https://github.com/indemnity83/homebrew-git-hack/releases/new?tag=$(VERSION)"
-	@echo "  2. Get the sha256:"
-	@echo "     curl -sL https://github.com/indemnity83/homebrew-git-hack/archive/refs/tags/$(VERSION).tar.gz | shasum -a 256"
-	@echo "  3. Update Formula/git-hack.rb with the new url and sha256."
-
-.PHONY: check test install-hooks release
+.PHONY: check test install-hooks

@@ -4,25 +4,32 @@ A git workflow helper that uses [`llm`](https://llm.datasette.io) for AI assista
 
 ## Install
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/Indemnity83/hack/main/git-hack -o /usr/local/bin/git-hack && chmod +x /usr/local/bin/git-hack
-```
-
-Or if you prefer `~/.local/bin` (no `sudo` required):
+### Homebrew (recommended)
 
 ```bash
-mkdir -p ~/.local/bin && curl -fsSL https://raw.githubusercontent.com/Indemnity83/hack/main/git-hack -o ~/.local/bin/git-hack && chmod +x ~/.local/bin/git-hack
+brew tap indemnity83/git-hack
+brew install git-hack
 ```
 
-Make sure the target directory is on your `$PATH`. Once installed, both `git hack` and `git-hack` work.
-
-## Setup
+### Manual
 
 **Install dependencies:**
 
 ```bash
 brew install llm git-town fzf
 ```
+
+<!-- RELEASE_INSTALL_BEGIN -->
+```bash
+curl -fsSL https://github.com/indemnity83/homebrew-git-hack/releases/download/v0.1.0/git-hack -o /tmp/git-hack
+echo "PLACEHOLDER  /tmp/git-hack" | shasum -a 256 -c
+install -m 755 /tmp/git-hack /usr/local/bin/git-hack
+```
+<!-- RELEASE_INSTALL_END -->
+
+Or install to `~/.local/bin` (no `sudo` required) — replace `/usr/local/bin` above with `~/.local/bin` and ensure it is on your `$PATH`.
+
+Once installed, both `git hack` and `git-hack` work.
 
 **Configure your LLM** (choose any provider `llm` supports):
 
