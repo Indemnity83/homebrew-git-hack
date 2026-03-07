@@ -7,12 +7,11 @@ set -euo pipefail
 # Subcommands:
 #   git hack ["idea"]
 #   git hack issue <number>
-#   git hack snapshot [-c|--conventional]
+#   git hack record [-a] [-c] [-p]
 #   git hack propose
-#   git hack port [commit-sha] [target-branch]
-#   git hack port --continue
+#   git hack pick [commit-sha] [target-branch]
+#   git hack pick --continue
 #   git hack done
-#   git hack prune
 #   git hack init
 #
 # Dependencies:
@@ -580,7 +579,7 @@ cmd_init() {
 
   info "git-hack alias installer"
   print -r -- "Installs shortcuts in your global ~/.gitconfig" >&2
-  print -r -- "e.g. 'git snap'  instead of  'git hack snapshot'" >&2
+  print -r -- "e.g. 'git record'  instead of  'git hack record'" >&2
   print -r -- "" >&2
 
   local -a selected_names=()
@@ -687,7 +686,7 @@ Commands:
   git hack pick [sha] [branch] Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack done                Delete merged branch and sync main
-  git hack init                Install global git aliases (git snap, git propose, …)
+  git hack init                Install global git aliases (git record, git pr, …)
 
 Dependencies:
   git, llm, git-town

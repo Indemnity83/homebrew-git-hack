@@ -14,7 +14,7 @@ cmd_init() {
 
   info "git-hack alias installer"
   print -r -- "Installs shortcuts in your global ~/.gitconfig" >&2
-  print -r -- "e.g. 'git snap'  instead of  'git hack snapshot'" >&2
+  print -r -- "e.g. 'git record'  instead of  'git hack record'" >&2
   print -r -- "" >&2
 
   local -a selected_names=()

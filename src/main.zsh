@@ -30,7 +30,7 @@ Commands:
   git hack pick [sha] [branch] Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack done                Delete merged branch and sync main
-  git hack init                Install global git aliases (git snap, git propose, …)
+  git hack init                Install global git aliases (git record, git pr, …)
 
 Dependencies:
   git, llm, git-town
