@@ -27,7 +27,7 @@ Commands:
   git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
   git hack record [-y] [-a] [-c] [-p] [--amend] [-m model]  AI commit message
   git hack propose [-y] [-d] [-m model]                  Create/update a GitHub PR via git-town
-  git hack pick [sha] [branch] Cherry-pick a commit (defaults to current branch)
+  git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack done                Delete merged branch and sync main
   git hack init                Install global git aliases (git record, git pr, …)
