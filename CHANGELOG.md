@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.0...v0.1.1) (2026-03-08)
+
+
+### Bug Fixes
+
+* change llm dependency to use native version ([#17](https://github.com/Indemnity83/homebrew-git-hack/issues/17)) ([54b66a3](https://github.com/Indemnity83/homebrew-git-hack/commit/54b66a3717158db9174b3e46e284c13bb86aa932))
+
 ## 0.1.0 (2026-03-08)
 
 
