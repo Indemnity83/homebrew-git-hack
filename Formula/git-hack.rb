@@ -6,7 +6,7 @@ class GitHack < Formula
   license "MIT"
 
   depends_on "git-town"
-  depends_on "simonw/llm/llm"
+  depends_on "llm"
   depends_on "gh"
 
   def install
