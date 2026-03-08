@@ -80,4 +80,3 @@ sanitize_branch_name() {
   fi
   print -r -- "$s"
 }
-# test

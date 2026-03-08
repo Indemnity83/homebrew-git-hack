@@ -104,7 +104,6 @@ sanitize_branch_name() {
   fi
   print -r -- "$s"
 }
-# test
 fzf_available() {
   command -v fzf >/dev/null 2>&1
 }
