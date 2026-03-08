@@ -23,7 +23,7 @@ Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 Commands:
   git hack [-y] [-m model] [idea]                        Create a feature branch
   git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
-  git hack record [-y] [-a] [-c] [-p] [--amend] [-m model]  AI commit message
+  git hack record [-y] [-a] [-A] [-c] [-p] [-m model]  AI commit message
   git hack propose [-y] [-d] [-m model]                  Create/update a GitHub PR via git-town
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts

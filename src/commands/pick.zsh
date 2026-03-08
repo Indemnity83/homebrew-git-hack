@@ -143,7 +143,7 @@ cmd_pick() {
       info "Skipping push. You can push manually with: git push"
     fi
   else
-    info "Cherry-pick had conflicts. Resolve them and run: hack pick --continue"
+    info "Cherry-pick had conflicts. Resolve them and run: git hack pick --continue"
     info "Or abort with: git cherry-pick --abort"
     info "Won't return to original branch until resolved."
     return 1

@@ -18,6 +18,7 @@ cmd_record() {
         for (( i=1; i<=${#flags}; i++ )); do
           case "${flags[i]}" in
             a) stage_all=1 ;;
+            A) amend=1 ;;
             c) conventional=1 ;;
             p) push=1 ;;
             y) auto_yes=1 ;;

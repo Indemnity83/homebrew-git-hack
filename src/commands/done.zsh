@@ -3,7 +3,8 @@ cmd_done() {
   need_cmd git-town
 
   local current_branch main_branch
-  current_branch=$(git rev-parse --abbrev-ref HEAD)
+  current_branch=$(current_branch)
+  [[ -n "$current_branch" ]] || die "Detached HEAD; check out a branch first."
   main_branch=$(default_base_branch)
 
   [[ "$current_branch" == "$main_branch" ]] \
