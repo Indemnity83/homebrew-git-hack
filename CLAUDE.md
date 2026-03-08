@@ -55,11 +55,10 @@ src/
   commands/
     idea.zsh          # cmd_idea — branch name from free-text idea (llm + git town hack)
     issue.zsh         # cmd_issue — branch name from GitHub issue (gh + llm + git town hack)
-    snapshot.zsh      # cmd_snapshot — commit message from staged diff (llm + git commit)
+    record.zsh        # cmd_record — commit message from staged diff (llm + git commit)
     propose.zsh       # cmd_propose — create/update GitHub PR (llm + git town propose)
-    port.zsh          # cmd_port — cherry-pick with fzf selection
-    done.zsh          # cmd_done — git town sync
-    prune.zsh         # cmd_prune — git town prune
+    pick.zsh          # cmd_pick — cherry-pick with fzf selection
+    done.zsh          # cmd_done — git town sync + delete + checkout main
     init.zsh          # cmd_init — install global git aliases
   main.zsh            # main() dispatcher + help text
 ```
@@ -71,12 +70,11 @@ src/
 | `git hack ["idea"]` | Create feature branch; defaults to interactive idea mode |
 | `git hack idea ["idea"]` | Explicit idea subcommand |
 | `git hack issue <n>` | Branch from GitHub issue |
-| `git hack snapshot [-c]` | AI commit message from staged diff |
+| `git hack record [-acpy] [-m model]` | AI commit message from staged diff |
 | `git hack propose` | Create/update PR via git-town |
-| `git hack port [sha] [branch]` | Cherry-pick a commit |
-| `git hack done` | `git town sync` |
-| `git hack prune` | `git town prune` |
-| `git hack init` | Install global git aliases (git snap, git propose, …) |
+| `git hack pick [sha] [branch]` | Cherry-pick a commit |
+| `git hack done` | Sync, delete merged branch, checkout main |
+| `git hack init` | Install global git aliases (git record, git rap, …) |
 
 ## Tests
 
@@ -100,9 +98,9 @@ Optional (improve UX): `fzf` (interactive selection), `gh` (for `hack issue`)
 
 | Alias | Expands to |
 |-------|-----------|
-| `git snap` | `git-hack snapshot` |
+| `git record` | `git-hack record` |
+| `git rap` | `git-hack record -a -p` |
+| `git pr` | `git-hack propose` |
 | `git propose` | `git-hack propose` |
-| `git port` | `git-hack port` |
+| `git pick` | `git-hack pick` |
 | `git done` | `git-hack done` |
-| `git prune` | `git-hack prune` |
-| `git issue` | `git-hack issue` |
