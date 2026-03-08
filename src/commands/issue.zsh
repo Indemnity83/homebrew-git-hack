@@ -47,7 +47,41 @@ cmd_issue() {
   local branch
   branch="$(printf 'GitHub issue #%s: %s\n\n%s\n\nRepo: %s' \
     "$issue_number" "$issue_title" "$idea" "$(basename "$(repo_root)")" \
-    | llm "${llm_args[@]}" -s 'Propose ONE kebab-case git branch name, 60 chars max. Output only the name.')"
+    | llm "${llm_args[@]}" -s $'You are a Git workflow assistant.
+
+Task:
+Generate ONE git branch name for the GitHub issue.
+
+Branch naming rules:
+- Output ONLY the branch name (no explanation or punctuation)
+- Lowercase only
+- Use kebab-case
+- Words separated by "-"
+- Optional category prefix followed by "/"
+
+Preferred prefixes:
+- feat/  (new feature)
+- fix/   (bug fix)
+- chore/ (maintenance or tooling)
+- refactor/
+- docs/
+- test/
+
+Additional constraints:
+- No spaces
+- No quotes
+- No backticks
+- Max length: 60 characters
+- Descriptive but concise
+- Avoid filler words like "the", "a", "stuff", "things"
+
+Good examples:
+- feat/add-meter-billing-ui
+- fix/authentik-oauth-profile-claim
+- chore/update-docker-compose
+- refactor/simplify-energy-buffer-logic
+
+Return ONLY the branch name.')"
   branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
   branch="$(sanitize_branch_name "$branch")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
