@@ -1,20 +1,18 @@
 # MAIN
 main() {
   need_cmd git
-  need_cmd llm
-  need_cmd git-town
 
   local cmd="${1:-}"
   [[ $# -gt 0 ]] && shift
 
   case "$cmd" in
     init)     cmd_init "$@" ;;
-    record)   in_git_repo || die "Run this inside a git repository."; cmd_record "$@" ;;
-    done)     in_git_repo || die "Run this inside a git repository."; cmd_done "$@" ;;
-    pick)     in_git_repo || die "Run this inside a git repository."; cmd_pick "$@" ;;
-    idea)     in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
-    issue)    in_git_repo || die "Run this inside a git repository."; cmd_issue "$@" ;;
-    propose)  in_git_repo || die "Run this inside a git repository."; cmd_propose "$@" ;;
+    record)   need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_record "$@" ;;
+    done)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_done "$@" ;;
+    pick)     need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_pick "$@" ;;
+    idea)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
+    issue)    need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_issue "$@" ;;
+    propose)  need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_propose "$@" ;;
 
     -h|--help)
       cat <<'HELP'
@@ -44,12 +42,14 @@ HELP
 
     "")
       # No subcommand — go interactive idea mode
+      need_cmd llm; need_cmd git-town
       in_git_repo || die "Run this inside a git repository."
       cmd_idea
       ;;
 
     *)
       # Unknown token — treat as idea description
+      need_cmd llm; need_cmd git-town
       in_git_repo || die "Run this inside a git repository."
       cmd_idea "$cmd" "$@"
       ;;
