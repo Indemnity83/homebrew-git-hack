@@ -55,7 +55,7 @@ src/
   commands/
     idea.zsh          # cmd_idea — branch name from free-text idea (llm + git town hack)
     issue.zsh         # cmd_issue — branch name from GitHub issue (gh + llm + git town hack)
-    record.zsh        # cmd_record — commit message from staged diff (llm + git commit)
+    commit.zsh        # cmd_commit — commit message from staged diff (llm + git commit)
     propose.zsh       # cmd_propose — create/update GitHub PR (llm + git town propose)
     pick.zsh          # cmd_pick — cherry-pick with fzf selection
     done.zsh          # cmd_done — git town sync + delete + checkout main
@@ -70,11 +70,11 @@ src/
 | `git hack ["idea"]` | Create feature branch; defaults to interactive idea mode |
 | `git hack idea ["idea"]` | Explicit idea subcommand |
 | `git hack issue <n>` | Branch from GitHub issue |
-| `git hack record [-acpy] [-m model]` | AI commit message from staged diff |
+| `git hack commit [-acpy] [-m model]` | AI commit message from staged diff |
 | `git hack propose` | Create/update PR via git-town |
 | `git hack pick [sha] [branch]` | Cherry-pick a commit |
 | `git hack done` | Sync, delete merged branch, checkout main |
-| `git hack init` | Install global git aliases (git record, git rap, …) |
+| `git hack init` | Install global git aliases (git c, git cap, …) |
 
 ## Tests
 
@@ -98,8 +98,8 @@ Optional (improve UX): `fzf` (interactive selection), `gh` (for `hack issue`)
 
 | Alias | Expands to |
 |-------|-----------|
-| `git record` | `git-hack record` |
-| `git rap` | `git-hack record -a -p` |
+| `git c` | `git-hack commit` |
+| `git cap` | `git-hack commit -a -p` |
 | `git pr` | `git-hack propose` |
 | `git propose` | `git-hack propose` |
 | `git pick` | `git-hack pick` |
