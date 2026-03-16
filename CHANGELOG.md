@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.2](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.1...v0.1.2) (2026-03-16)
+
+
+### Features
+
+* add ship command for combined commit and propose functionality ([#21](https://github.com/Indemnity83/homebrew-git-hack/issues/21)) ([84f13e8](https://github.com/Indemnity83/homebrew-git-hack/commit/84f13e84b7a753e285623fbfc16ba860adeba8c8))
+
+
+### Refactoring
+
+* rename record command to commit and adjust aliases ([#19](https://github.com/Indemnity83/homebrew-git-hack/issues/19)) ([b89467a](https://github.com/Indemnity83/homebrew-git-hack/commit/b89467a55d7597a272f2d59c10f72317dae4944a))
+
 ## [0.1.1](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.0...v0.1.1) (2026-03-08)
 
 
