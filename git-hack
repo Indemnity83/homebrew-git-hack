@@ -7,7 +7,7 @@ set -euo pipefail
 # Subcommands:
 #   git hack ["idea"]
 #   git hack issue <number>
-#   git hack record [-a] [-c] [-p]
+#   git hack commit [-y] [-a] [-A] [-c] [-p] [-m model]
 #   git hack propose
 #   git hack pick [commit-sha] [target-branch]
 #   git hack pick --continue
@@ -367,8 +367,8 @@ Return ONLY the branch name.')"
   git town hack "$branch"
   ok "Now on branch: $(current_branch)"
 }
-# SUBCOMMAND: record
-cmd_record() {
+# SUBCOMMAND: commit
+cmd_commit() {
   need_cmd llm
 
   local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 model=""
@@ -870,8 +870,8 @@ cmd_done() {
 # SUBCOMMAND: init — install global git aliases for git-hack commands
 cmd_init() {
   # Parallel arrays: alias name, git-hack subcommand, description
-  local -a alias_names=(record  rap               pr        propose   pick          done                 )
-  local -a alias_cmds=( record  "record -a -p"    propose   propose   pick          done                 )
+  local -a alias_names=(c       cap               pr        propose   pick          done                 )
+  local -a alias_cmds=( commit  "commit -a -p"    propose   propose   pick          done                 )
   local -a alias_descs=(
     "AI-generated commit message"
     "Stage all, AI-commit, and push"
@@ -883,7 +883,7 @@ cmd_init() {
 
   info "git-hack alias installer"
   print -r -- "Installs shortcuts in your global ~/.gitconfig" >&2
-  print -r -- "e.g. 'git record'  instead of  'git hack record'" >&2
+  print -r -- "e.g. 'git c'  instead of  'git hack commit'" >&2
   print -r -- "" >&2
 
   local -a selected_names=()
@@ -922,7 +922,7 @@ cmd_init() {
     print -r -- "" >&2
 
     local choice
-    choice="$(prompt_choice "Numbers to install (space-separated, or 'all'):" "all")"
+    choice="$(prompt_choice "Numbers to install (space-separated, or 'all'):" "")"
     [[ -n "$choice" ]] || { info "No aliases selected."; return; }
 
     if [[ "$choice" == "all" ]]; then
@@ -951,6 +951,12 @@ cmd_init() {
       fi
     done
     [[ -n "$cmd" ]] || continue
+    local existing_val
+    existing_val="$(git config --global "alias.${name}" 2>/dev/null || true)"
+    if [[ -n "$existing_val" && "$existing_val" != "!git-hack ${cmd}" ]]; then
+      print -r -- "  ⚠ git ${name} is already set to '${existing_val}'" >&2
+      confirm "  Overwrite with 'git-hack ${cmd}'?" "n" || { info "Skipped git ${name}."; continue; }
+    fi
     git config --global "alias.${name}" "!git-hack ${cmd}"
     ok "git ${name}  →  git-hack ${cmd}"
   done
@@ -967,7 +973,9 @@ main() {
 
   case "$cmd" in
     init)     cmd_init "$@" ;;
-    record)   need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_record "$@" ;;
+    commit|record)
+              [[ "$cmd" == "record" ]] && print -r -- "Warning: 'git hack record' is deprecated; use 'git hack commit' instead." >&2
+              need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_commit "$@" ;;
     done)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_done "$@" ;;
     pick)     need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_pick "$@" ;;
     idea)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
@@ -983,12 +991,12 @@ Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 Commands:
   git hack [-y] [-m model] [idea]                        Create a feature branch
   git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
-  git hack record [-y] [-a] [-A] [-c] [-p] [-m model]  AI commit message
+  git hack commit [-y] [-a] [-A] [-c] [-p] [-m model]  AI commit message
   git hack propose [-y] [-d] [-m model]                  Create/update a GitHub PR via git-town
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack done                Delete merged branch and sync main
-  git hack init                Install global git aliases (git record, git pr, …)
+  git hack init                Install global git aliases (git c, git pr, …)
 
 Dependencies:
   git, llm, git-town

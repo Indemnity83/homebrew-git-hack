@@ -1,5 +1,5 @@
-# SUBCOMMAND: record
-cmd_record() {
+# SUBCOMMAND: commit
+cmd_commit() {
   need_cmd llm
 
   local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 model=""

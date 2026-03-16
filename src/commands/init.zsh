@@ -1,8 +1,8 @@
 # SUBCOMMAND: init — install global git aliases for git-hack commands
 cmd_init() {
   # Parallel arrays: alias name, git-hack subcommand, description
-  local -a alias_names=(record  rap               pr        propose   pick          done                 )
-  local -a alias_cmds=( record  "record -a -p"    propose   propose   pick          done                 )
+  local -a alias_names=(c       cap               pr        propose   pick          done                 )
+  local -a alias_cmds=( commit  "commit -a -p"    propose   propose   pick          done                 )
   local -a alias_descs=(
     "AI-generated commit message"
     "Stage all, AI-commit, and push"
@@ -14,7 +14,7 @@ cmd_init() {
 
   info "git-hack alias installer"
   print -r -- "Installs shortcuts in your global ~/.gitconfig" >&2
-  print -r -- "e.g. 'git record'  instead of  'git hack record'" >&2
+  print -r -- "e.g. 'git c'  instead of  'git hack commit'" >&2
   print -r -- "" >&2
 
   local -a selected_names=()
@@ -53,7 +53,7 @@ cmd_init() {
     print -r -- "" >&2
 
     local choice
-    choice="$(prompt_choice "Numbers to install (space-separated, or 'all'):" "all")"
+    choice="$(prompt_choice "Numbers to install (space-separated, or 'all'):" "")"
     [[ -n "$choice" ]] || { info "No aliases selected."; return; }
 
     if [[ "$choice" == "all" ]]; then
@@ -82,6 +82,12 @@ cmd_init() {
       fi
     done
     [[ -n "$cmd" ]] || continue
+    local existing_val
+    existing_val="$(git config --global "alias.${name}" 2>/dev/null || true)"
+    if [[ -n "$existing_val" && "$existing_val" != "!git-hack ${cmd}" ]]; then
+      print -r -- "  ⚠ git ${name} is already set to '${existing_val}'" >&2
+      confirm "  Overwrite with 'git-hack ${cmd}'?" "n" || { info "Skipped git ${name}."; continue; }
+    fi
     git config --global "alias.${name}" "!git-hack ${cmd}"
     ok "git ${name}  →  git-hack ${cmd}"
   done

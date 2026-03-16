@@ -7,7 +7,9 @@ main() {
 
   case "$cmd" in
     init)     cmd_init "$@" ;;
-    record)   need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_record "$@" ;;
+    commit|record)
+              [[ "$cmd" == "record" ]] && print -r -- "Warning: 'git hack record' is deprecated; use 'git hack commit' instead." >&2
+              need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_commit "$@" ;;
     done)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_done "$@" ;;
     pick)     need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_pick "$@" ;;
     idea)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
@@ -23,12 +25,12 @@ Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 Commands:
   git hack [-y] [-m model] [idea]                        Create a feature branch
   git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
-  git hack record [-y] [-a] [-A] [-c] [-p] [-m model]  AI commit message
+  git hack commit [-y] [-a] [-A] [-c] [-p] [-m model]  AI commit message
   git hack propose [-y] [-d] [-m model]                  Create/update a GitHub PR via git-town
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack done                Delete merged branch and sync main
-  git hack init                Install global git aliases (git record, git pr, …)
+  git hack init                Install global git aliases (git c, git pr, …)
 
 Dependencies:
   git, llm, git-town
