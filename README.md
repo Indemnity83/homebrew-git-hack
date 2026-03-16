@@ -106,9 +106,18 @@ Same as `idea`, but fetches the title and body from a GitHub issue to generate t
 git hack issue 42
 ```
 
-### `git hack commit [-a] [-c] [-p]`
+### `git hack commit [-y] [-a] [-A] [-c] [-p] [-m model]`
 
 Generates a commit message from your staged diff. If nothing is staged, offers to run `git add -p`. You can accept, edit, or cancel before the commit is made.
+
+| Flag | Description |
+|------|-------------|
+| `-a` | Stage all changes first (`git add -A`) |
+| `-A` | Amend the last commit instead of creating a new one (uses `--force-with-lease` when pushing) |
+| `-c` | Add a Conventional Commit prefix (`feat:`, `fix:`, …) |
+| `-p` | Push after committing |
+| `-y` | Auto-accept the generated message without prompting |
+| `-m model` | LLM model to use (passed to `llm -m`) |
 
 ```bash
 git hack commit              # commit staged changes with AI-generated message
@@ -116,6 +125,10 @@ git hack commit -a           # stage all changes first (git add -A)
 git hack commit -p           # push after committing
 git hack commit -a -p        # stage all, commit, and push
 git hack commit -c           # conventional commit prefix (feat:, fix:, …)
+git hack commit -y           # accept message without prompting
+git hack commit -A           # amend the last commit
+git hack commit -A -p        # amend and force-push
+git hack commit -m claude-3-5-sonnet-latest  # use a specific model
 ```
 
 Also available as `git c` and `git cap` (stage all + commit + push) after running `git hack init`.
