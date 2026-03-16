@@ -15,6 +15,7 @@ main() {
     idea)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
     issue)    need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_issue "$@" ;;
     propose)  need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_propose "$@" ;;
+    ship)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_ship "$@" ;;
 
     -h|--help)
       cat <<'HELP'
@@ -27,6 +28,7 @@ Commands:
   git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
   git hack commit [-y] [-a] [-A] [-c] [-p] [-m model]  AI commit message
   git hack propose [-y] [-d] [-m model]                  Create/update a GitHub PR via git-town
+  git hack ship [-y] [-a] [-c] [-d] [-m model]           AI commit + open PR in one step
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack done                Delete merged branch and sync main
