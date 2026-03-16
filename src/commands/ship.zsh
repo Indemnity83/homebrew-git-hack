@@ -10,8 +10,10 @@ cmd_ship() {
       --conventional) conventional=1; shift ;;
       --draft)        draft=1; shift ;;
       --yes)          auto_yes=1; shift ;;
-      --model)        model="$2"; shift 2 ;;
-      -m)             model="$2"; shift 2 ;;
+      --model)        [[ $# -ge 2 ]] || die "--model requires an argument"
+                      model="$2"; shift 2 ;;
+      -m)             [[ $# -ge 2 ]] || die "-m requires an argument; use -m <model> as a standalone flag"
+                      model="$2"; shift 2 ;;
       --)             shift; break ;;
       -*)
         local flags="${1:1}"; shift
