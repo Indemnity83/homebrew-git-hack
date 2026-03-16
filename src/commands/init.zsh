@@ -53,7 +53,7 @@ cmd_init() {
     print -r -- "" >&2
 
     local choice
-    choice="$(prompt_choice "Numbers to install (space-separated, or 'all'):" "all")"
+    choice="$(prompt_choice "Numbers to install (space-separated, or 'all'):" "")"
     [[ -n "$choice" ]] || { info "No aliases selected."; return; }
 
     if [[ "$choice" == "all" ]]; then
@@ -82,6 +82,12 @@ cmd_init() {
       fi
     done
     [[ -n "$cmd" ]] || continue
+    local existing_val
+    existing_val="$(git config --global "alias.${name}" 2>/dev/null || true)"
+    if [[ -n "$existing_val" && "$existing_val" != "!git-hack ${cmd}" ]]; then
+      print -r -- "  ⚠ git ${name} is already set to '${existing_val}'" >&2
+      confirm "  Overwrite with 'git-hack ${cmd}'?" "n" || { info "Skipped git ${name}."; continue; }
+    fi
     git config --global "alias.${name}" "!git-hack ${cmd}"
     ok "git ${name}  →  git-hack ${cmd}"
   done

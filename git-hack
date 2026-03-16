@@ -7,7 +7,7 @@ set -euo pipefail
 # Subcommands:
 #   git hack ["idea"]
 #   git hack issue <number>
-#   git hack record [-a] [-c] [-p]
+#   git hack commit [-y] [-a] [-A] [-c] [-p] [-m model]
 #   git hack propose
 #   git hack pick [commit-sha] [target-branch]
 #   git hack pick --continue
@@ -922,7 +922,7 @@ cmd_init() {
     print -r -- "" >&2
 
     local choice
-    choice="$(prompt_choice "Numbers to install (space-separated, or 'all'):" "all")"
+    choice="$(prompt_choice "Numbers to install (space-separated, or 'all'):" "")"
     [[ -n "$choice" ]] || { info "No aliases selected."; return; }
 
     if [[ "$choice" == "all" ]]; then
@@ -951,6 +951,12 @@ cmd_init() {
       fi
     done
     [[ -n "$cmd" ]] || continue
+    local existing_val
+    existing_val="$(git config --global "alias.${name}" 2>/dev/null || true)"
+    if [[ -n "$existing_val" && "$existing_val" != "!git-hack ${cmd}" ]]; then
+      print -r -- "  ⚠ git ${name} is already set to '${existing_val}'" >&2
+      confirm "  Overwrite with 'git-hack ${cmd}'?" "n" || { info "Skipped git ${name}."; continue; }
+    fi
     git config --global "alias.${name}" "!git-hack ${cmd}"
     ok "git ${name}  →  git-hack ${cmd}"
   done
@@ -967,7 +973,9 @@ main() {
 
   case "$cmd" in
     init)     cmd_init "$@" ;;
-    commit)   need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_commit "$@" ;;
+    commit|record)
+              [[ "$cmd" == "record" ]] && print -r -- "Warning: 'git hack record' is deprecated; use 'git hack commit' instead." >&2
+              need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_commit "$@" ;;
     done)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_done "$@" ;;
     pick)     need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_pick "$@" ;;
     idea)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;

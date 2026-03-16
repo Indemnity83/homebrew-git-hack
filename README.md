@@ -11,13 +11,13 @@ See [WORKFLOW.md](WORKFLOW.md) for a full walkthrough, including how this pairs 
 ## The Workflow
 
 ```text
-idea → record → propose → done
+idea → commit → propose → done
 ```
 
 | Step | Command | What it does |
 |------|---------|-------------|
 | Idea | `git hack "description"` | LLM names and creates the branch |
-| Record | `git hack record` | LLM generates a commit message from your staged diff |
+| Commit | `git hack commit` | LLM generates a commit message from your staged diff |
 | Propose | `git hack propose` | LLM drafts a Conventional Commit PR title and body |
 | Done | `git hack done` | verifies merged, deletes branch, updates main |
 
@@ -74,7 +74,7 @@ git town config setup
 git hack init
 ```
 
-This adds shortcuts like `git record`, `git pr`, etc. to your `~/.gitconfig`.
+This adds shortcuts like `git c`, `git pr`, etc. to your `~/.gitconfig`.
 
 ## Dependencies
 
@@ -106,19 +106,19 @@ Same as `idea`, but fetches the title and body from a GitHub issue to generate t
 git hack issue 42
 ```
 
-### `git hack record [-a] [-c] [-p]`
+### `git hack commit [-a] [-c] [-p]`
 
 Generates a commit message from your staged diff. If nothing is staged, offers to run `git add -p`. You can accept, edit, or cancel before the commit is made.
 
 ```bash
-git hack record              # commit staged changes with AI-generated message
-git hack record -a           # stage all changes first (git add -A)
-git hack record -p           # push after committing
-git hack record -a -p        # stage all, commit, and push
-git hack record -c           # conventional commit prefix (feat:, fix:, …)
+git hack commit              # commit staged changes with AI-generated message
+git hack commit -a           # stage all changes first (git add -A)
+git hack commit -p           # push after committing
+git hack commit -a -p        # stage all, commit, and push
+git hack commit -c           # conventional commit prefix (feat:, fix:, …)
 ```
 
-Also available as `git record` and `git rap` (stage all + commit + push) after running `git hack init`.
+Also available as `git c` and `git cap` (stage all + commit + push) after running `git hack init`.
 
 ### `git hack propose`
 
@@ -165,8 +165,8 @@ Aliases installed:
 
 | Alias | Expands to |
 |-------|-----------|
-| `git record` | `git hack record` |
-| `git rap` | `git hack record -a -p` |
+| `git c` | `git hack commit` |
+| `git cap` | `git hack commit -a -p` |
 | `git pr` | `git hack propose` |
 | `git propose` | `git hack propose` |
 | `git pick` | `git hack pick` |
