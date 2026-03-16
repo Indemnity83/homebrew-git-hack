@@ -7,6 +7,7 @@ SRC_REST = src/utils.zsh \
            src/commands/issue.zsh \
            src/commands/commit.zsh \
            src/commands/propose.zsh \
+           src/commands/ship.zsh \
            src/commands/pick.zsh \
            src/commands/done.zsh \
            src/commands/init.zsh \
