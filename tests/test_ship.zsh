@@ -33,11 +33,11 @@ cmd_ship -d
 assert_eq "-d not → commit"  ""   "${commit_got[*]}"
 assert_eq "-d → propose"     "-d" "${propose_got[*]}"
 
-# -n goes to both
+# -n goes to commit only
 commit_got=(); propose_got=()
 cmd_ship -n
-assert_eq "-n → commit"  "-n" "${commit_got[*]}"
-assert_eq "-n → propose" "-n" "${propose_got[*]}"
+assert_eq "-n → commit"      "-n" "${commit_got[*]}"
+assert_eq "-n not → propose" ""   "${propose_got[*]}"
 
 # -m goes to both
 commit_got=(); propose_got=()
@@ -49,6 +49,6 @@ assert_eq "-m → propose" "-m gpt4" "${propose_got[*]}"
 commit_got=(); propose_got=()
 cmd_ship -a -c -y -d -n -m mymodel
 assert_eq "combined → commit"  "-a -c -n -y -m mymodel" "${commit_got[*]}"
-assert_eq "combined → propose" "-d -n -y -m mymodel"    "${propose_got[*]}"
+assert_eq "combined → propose" "-d -y -m mymodel"       "${propose_got[*]}"
 
 summarize

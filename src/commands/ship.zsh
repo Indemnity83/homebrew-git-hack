@@ -41,9 +41,8 @@ cmd_ship() {
   [[ $auto_yes -eq 1 ]]     && commit_args+=(-y)
   [[ -n "$model" ]]         && commit_args+=(-m "$model")
 
-  [[ $draft -eq 1 ]]     && propose_args+=(-d)
-  [[ $no_verify -eq 1 ]] && propose_args+=(-n)
-  [[ $auto_yes -eq 1 ]]  && propose_args+=(-y)
+  [[ $draft -eq 1 ]]    && propose_args+=(-d)
+  [[ $auto_yes -eq 1 ]] && propose_args+=(-y)
   [[ -n "$model" ]]      && propose_args+=(-m "$model")
 
   cmd_commit "${commit_args[@]}"

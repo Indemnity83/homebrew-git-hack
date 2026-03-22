@@ -3,12 +3,11 @@ cmd_propose() {
   need_cmd llm
   need_cmd git-town
 
-  local auto_yes=0 draft=0 no_verify=0 model=""
+  local auto_yes=0 draft=0 model=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --yes)       auto_yes=1; shift ;;
       --draft)     draft=1; shift ;;
-      --no-verify) no_verify=1; shift ;;
       --model)     model="$2"; shift 2 ;;
       -m)          model="$2"; shift 2 ;;
       --)          shift; break ;;
@@ -18,7 +17,6 @@ cmd_propose() {
           case "${flags[i]}" in
             y) auto_yes=1 ;;
             d) draft=1 ;;
-            n) no_verify=1 ;;
             m) die "-m requires an argument; use -m <model> as a standalone flag" ;;
             *) die "Unknown option: -${flags[i]}" ;;
           esac
@@ -142,9 +140,8 @@ Return ONLY the body text.')"
     die "Cancelled."
   fi
 
-  local draft_flag=() no_verify_flag=()
-  [[ $draft -eq 1 ]]     && draft_flag=(--draft)
-  [[ $no_verify -eq 1 ]] && no_verify_flag=(--no-verify)
+  local draft_flag=()
+  [[ $draft -eq 1 ]] && draft_flag=(--draft)
 
-  git town propose "${draft_flag[@]}" "${no_verify_flag[@]}" --title "$title" --body "$body"
+  git town propose "${draft_flag[@]}" --title "$title" --body "$body"
 }
