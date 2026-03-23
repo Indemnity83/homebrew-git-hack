@@ -6,7 +6,7 @@ class GitHack < Formula
   license "MIT"
 
   resource "manpage" do
-    url "https://github.com/indemnity83/homebrew-git-hack/releases/download/v#{version}/git-hack.1"
+    url "https://github.com/indemnity83/homebrew-git-hack/releases/download/v0.1.3/git-hack.1"
     sha256 "d305c6512bb2f0141478dce5a34243494d73afed6b711bb60ff75ea365d4c886"
   end
 
