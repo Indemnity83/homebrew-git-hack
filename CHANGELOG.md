@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.2...v0.1.3) (2026-03-23)
+
+
+### Features
+
+* add --no-verify flag to commit command ([#22](https://github.com/Indemnity83/homebrew-git-hack/issues/22)) ([bdaaee7](https://github.com/Indemnity83/homebrew-git-hack/commit/bdaaee75db6ce51888eea4d56cab07121728dea1))
+
 ## [0.1.2](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.1...v0.1.2) (2026-03-16)
 
 
