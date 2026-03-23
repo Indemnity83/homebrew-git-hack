@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.3...v0.1.4) (2026-03-23)
+
+
+### Bug Fixes
+
+* resolve manpage versioning issues in release workflow ([#25](https://github.com/Indemnity83/homebrew-git-hack/issues/25)) ([0d900df](https://github.com/Indemnity83/homebrew-git-hack/commit/0d900dfc59348ccef7964cbaf115697a867f7644))
+
 ## [0.1.3](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.2...v0.1.3) (2026-03-23)
 
 
