@@ -35,15 +35,12 @@ jobs:
           SHA256="${{ steps.info.outputs.sha256 }}"
           MANPAGE_SHA256="${{ steps.info.outputs.manpage_sha256 }}"
           TAG="${{ steps.info.outputs.tag }}"
-          MANPAGE_URL="https://github.com/indemnity83/homebrew-git-hack/releases/download/${TAG}/git-hack.1"
-          # Update script URL (ends in /git-hack", not /git-hack.1")
+          # Update script URL (ends in /git-hack", not /git-hack.1" or #{version})
           sed -i 's|url "[^"]*releases/download/[^"]*git-hack"|url "'"${URL}"'"|' Formula/git-hack.rb
           # Update script sha256 (line immediately after the script URL line)
           sed -i '/releases\/download\/[^"]*git-hack"/{n; s|sha256 "[^"]*"|sha256 "'"${SHA256}"'"|}' Formula/git-hack.rb
-          # Update manpage URL (ends in /git-hack.1")
-          sed -i 's|url "[^"]*releases/download/[^"]*git-hack\.1"|url "'"${MANPAGE_URL}"'"|' Formula/git-hack.rb
-          # Update manpage sha256 (line immediately after the manpage URL line)
-          sed -i '/releases\/download\/[^"]*git-hack\.1"/{n; s|sha256 "[^"]*"|sha256 "'"${MANPAGE_SHA256}"'"|}' Formula/git-hack.rb
+          # Update manpage sha256 (line immediately after the #{version} manpage URL line)
+          sed -i '/git-hack\.1"/{n; s|sha256 "[^"]*"|sha256 "'"${MANPAGE_SHA256}"'"|}' Formula/git-hack.rb
           sed -i "s|releases/download/v[^/]*/git-hack -o|releases/download/${TAG}/git-hack -o|" README.md
           sed -i "s|echo \".*  /tmp/git-hack\"|echo \"${SHA256}  /tmp/git-hack\"|" README.md
 
