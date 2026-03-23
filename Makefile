@@ -38,4 +38,9 @@ install-hooks:
 	git config core.hooksPath .githooks
 	@echo "Git hooks installed (core.hooksPath = .githooks)."
 
-.PHONY: check test install-hooks
+doc/git-hack.1: doc/git-hack.1.ronn
+	ronn --roff $<
+
+man: doc/git-hack.1
+
+.PHONY: check test install-hooks man

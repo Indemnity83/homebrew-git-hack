@@ -20,3 +20,8 @@ jobs:
         run: gh release upload ${{ github.event.release.tag_name }} git-hack --clobber
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Upload man page as release asset
+        run: gh release upload ${{ github.event.release.tag_name }} doc/git-hack.1 --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
