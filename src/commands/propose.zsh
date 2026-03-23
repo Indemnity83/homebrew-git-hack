@@ -6,11 +6,11 @@ cmd_propose() {
   local auto_yes=0 draft=0 model=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --yes)   auto_yes=1; shift ;;
-      --draft) draft=1; shift ;;
-      --model) model="$2"; shift 2 ;;
-      -m)      model="$2"; shift 2 ;;
-      --)      shift; break ;;
+      --yes)       auto_yes=1; shift ;;
+      --draft)     draft=1; shift ;;
+      --model)     model="$2"; shift 2 ;;
+      -m)          model="$2"; shift 2 ;;
+      --)          shift; break ;;
       -*)
         local flags="${1:1}"; shift
         for (( i=1; i<=${#flags}; i++ )); do

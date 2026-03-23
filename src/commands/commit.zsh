@@ -2,7 +2,7 @@
 cmd_commit() {
   need_cmd llm
 
-  local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 model=""
+  local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 no_verify=0 model=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --all)          stage_all=1; shift ;;
@@ -10,6 +10,7 @@ cmd_commit() {
       --push)         push=1; shift ;;
       --yes)          auto_yes=1; shift ;;
       --amend)        amend=1; shift ;;
+      --no-verify)    no_verify=1; shift ;;
       --model)        model="$2"; shift 2 ;;
       -m)             model="$2"; shift 2 ;;
       --)             shift; break ;;
@@ -20,6 +21,7 @@ cmd_commit() {
             a) stage_all=1 ;;
             A) amend=1 ;;
             c) conventional=1 ;;
+            n) no_verify=1 ;;
             p) push=1 ;;
             y) auto_yes=1 ;;
             m) die "-m requires an argument; use -m <model> as a standalone flag" ;;
@@ -136,16 +138,17 @@ Return ONLY the subject line.'
   print -r -- "  $msg" >&2
   print -r -- "" >&2
 
-  local amend_flag=() push_flag=()
-  [[ $amend -eq 1 ]] && amend_flag=(--amend)
-  [[ $amend -eq 1 ]] && push_flag=(--force-with-lease)
+  local amend_flag=() push_flag=() no_verify_flag=()
+  [[ $amend -eq 1 ]]     && amend_flag=(--amend)
+  [[ $amend -eq 1 ]]     && push_flag=(--force-with-lease)
+  [[ $no_verify -eq 1 ]] && no_verify_flag=(--no-verify)
 
   _do_commit() {
     local subject="$1"
-    git commit "${amend_flag[@]}" -m "$subject"
+    git commit "${amend_flag[@]}" "${no_verify_flag[@]}" -m "$subject"
     [[ $amend -eq 1 ]] && ok "Amended." || ok "Committed."
     if [[ $push -eq 1 ]]; then
-      if git push "${push_flag[@]}"; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
+      if git push "${push_flag[@]}" "${no_verify_flag[@]}"; then ok "Pushed."; else info "Push failed. You can push manually later."; fi
     fi
   }
 

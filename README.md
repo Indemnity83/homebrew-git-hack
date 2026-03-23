@@ -106,7 +106,7 @@ Same as `idea`, but fetches the title and body from a GitHub issue to generate t
 git hack issue 42
 ```
 
-### `git hack commit [-y] [-a] [-A] [-c] [-p] [-m model]`
+### `git hack commit [-y] [-a] [-A] [-c] [-p] [-n] [-m model]`
 
 Generates a commit message from your staged diff. If nothing is staged, offers to run `git add -p`. You can accept, edit, or cancel before the commit is made.
 
@@ -116,6 +116,7 @@ Generates a commit message from your staged diff. If nothing is staged, offers t
 | `-A` | Amend the last commit instead of creating a new one (uses `--force-with-lease` when pushing) |
 | `-c` | Add a Conventional Commit prefix (`feat:`, `fix:`, …) |
 | `-p` | Push after committing |
+| `-n` | Skip pre-commit and pre-push hooks (`--no-verify`) |
 | `-y` | Auto-accept the generated message without prompting |
 | `-m model` | LLM model to use (passed to `llm -m`) |
 
@@ -125,6 +126,7 @@ git hack commit -a           # stage all changes first (git add -A)
 git hack commit -p           # push after committing
 git hack commit -a -p        # stage all, commit, and push
 git hack commit -c           # conventional commit prefix (feat:, fix:, …)
+git hack commit -n           # skip pre-commit hooks
 git hack commit -y           # accept message without prompting
 git hack commit -A           # amend the last commit
 git hack commit -A -p        # amend and force-push
