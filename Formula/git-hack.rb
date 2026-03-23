@@ -5,12 +5,18 @@ class GitHack < Formula
   sha256 "a5e172b1c4b3af98be0132ccb9bccba1a93f3810178209d5743c19e7d7c8f020"
   license "MIT"
 
+  resource "manpage" do
+    url "https://github.com/indemnity83/homebrew-git-hack/releases/download/v0.1.2/git-hack.1"
+    sha256 "MANPAGE_SHA256"
+  end
+
   depends_on "git-town"
   depends_on "llm"
   depends_on "gh"
 
   def install
     bin.install "git-hack"
+    resource("manpage").stage { man1.install "git-hack.1" }
   end
 
   def caveats

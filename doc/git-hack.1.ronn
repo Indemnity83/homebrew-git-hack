@@ -1,0 +1,198 @@
+git-hack(1) -- AI-augmented git workflow helper
+================================================
+
+## SYNOPSIS
+
+`git hack` [<idea-text>]<br>
+`git hack idea` [-y] [-m <model>] [<idea-text>]<br>
+`git hack issue` [-y] [-m <model>] <number><br>
+`git hack commit` [-a] [-A] [-c] [-p] [-n] [-y] [-m <model>]<br>
+`git hack propose` [-d] [-y] [-m <model>]<br>
+`git hack ship` [-a] [-c] [-d] [-n] [-y] [-m <model>]<br>
+`git hack pick` [<sha>] [<branch>]<br>
+`git hack pick` --continue<br>
+`git hack done`<br>
+`git hack init`<br>
+
+## DESCRIPTION
+
+`git-hack` augments git workflows with AI assistance. It uses the `llm` CLI
+to generate branch names, commit messages, and pull request descriptions, and
+`git-town` for branch lifecycle management. Typical flow: create a branch with
+`idea` or `issue`, make changes, commit with `commit`, open a PR with
+`propose`, and clean up with `done`.
+
+When invoked without a subcommand, `git hack` runs in interactive `idea` mode.
+When invoked with an unrecognised first argument, that argument is treated as
+an idea description.
+
+## SUBCOMMANDS
+
+### idea (default)
+
+    git hack [idea-text]
+    git hack idea [-y] [-m model] [idea-text]
+
+Generate a branch name from a free-text description using `llm`, then create
+the branch via `git town hack`. Prompts interactively if <idea-text> is
+omitted.
+
+  * `-y`, `--yes`:
+    Accept the AI-generated branch name without prompting.
+
+  * `-m` <model>, `--model` <model>:
+    Override the default `llm` model for this invocation.
+
+### issue
+
+    git hack issue [-y] [-m model] <number>
+
+Fetch the title and body of a GitHub issue via `gh`, generate a branch name
+with `llm`, and create the branch via `git town hack`. Requires `gh` to be
+installed and authenticated (`gh auth login`).
+
+  * `-y`, `--yes`:
+    Accept the AI-generated branch name without prompting.
+
+  * `-m` <model>, `--model` <model>:
+    Override the default `llm` model for this invocation.
+
+### commit
+
+    git hack commit [-a] [-A] [-c] [-p] [-n] [-y] [-m model]
+
+Generate a commit message for staged changes using `llm` and commit. If no
+changes are staged, offers to run `git add -p`.
+
+  * `-a`, `--all`:
+    Stage all tracked modifications (`git add -A`) before generating the
+    message.
+
+  * `-A`, `--amend`:
+    Amend the previous commit instead of creating a new one. Implies
+    `--force-with-lease` when pushing.
+
+  * `-c`, `--conventional`:
+    Generate a Conventional Commit subject (`type: description`) instead of a
+    plain imperative subject.
+
+  * `-p`, `--push`:
+    Push to origin after committing.
+
+  * `-n`, `--no-verify`:
+    Skip pre-commit and commit-msg hooks.
+
+  * `-y`, `--yes`:
+    Commit with the AI message without prompting.
+
+  * `-m` <model>, `--model` <model>:
+    Override the default `llm` model for this invocation.
+
+### propose
+
+    git hack propose [-d] [-y] [-m model]
+
+Generate a PR title and body using `llm`, then open or update the pull request
+via `git town propose`.
+
+  * `-d`, `--draft`:
+    Open the PR as a draft.
+
+  * `-y`, `--yes`:
+    Submit without confirming the generated title/body.
+
+  * `-m` <model>, `--model` <model>:
+    Override the default `llm` model for this invocation.
+
+### ship
+
+    git hack ship [-a] [-c] [-d] [-n] [-y] [-m model]
+
+Run `commit` then `propose` in a single step. Flags are forwarded to the
+appropriate subcommand: `-n` (no-verify) goes to `commit` only; `-d` (draft)
+goes to `propose` only; all other flags go to both.
+
+  * `-a`, `--all`:
+    Stage all tracked modifications before committing.
+
+  * `-c`, `--conventional`:
+    Use Conventional Commit format for the commit message.
+
+  * `-d`, `--draft`:
+    Open the resulting PR as a draft.
+
+  * `-n`, `--no-verify`:
+    Skip pre-commit and commit-msg hooks during the commit step.
+
+  * `-y`, `--yes`:
+    Accept all AI suggestions without prompting.
+
+  * `-m` <model>, `--model` <model>:
+    Override the default `llm` model for this invocation.
+
+### pick
+
+    git hack pick [sha] [branch]
+    git hack pick --continue
+
+Cherry-pick a commit onto the target branch. When called without arguments,
+presents an interactive list of recent commits from the default base branch
+(uses `fzf` if available). After a successful pick, offers to push.
+
+  * `--continue`:
+    Resume a cherry-pick that was paused due to conflicts. Verifies that all
+    conflicts are resolved and all files are staged before continuing.
+
+### done
+
+    git hack done
+
+Sync the current branch with its parent (`git town sync`), delete the merged
+branch (`git town delete`), and check out the main branch. Fails if the branch
+has not been merged.
+
+### init
+
+    git hack init
+
+Install global git aliases into `~/.gitconfig`:
+
+| Alias        | Expands to            |
+|--------------|-----------------------|
+| `git c`      | `git-hack commit`     |
+| `git cap`    | `git-hack commit -a -p` |
+| `git pr`     | `git-hack propose`    |
+| `git propose`| `git-hack propose`    |
+| `git pick`   | `git-hack pick`       |
+| `git done`   | `git-hack done`       |
+
+## DEPENDENCIES
+
+Required:
+
+  * `git` — version control
+  * `llm` — AI model CLI (see <https://llm.datasette.io>)
+  * `git-town` — branch lifecycle management (see <https://www.git-town.com>)
+
+Optional:
+
+  * `fzf` — interactive fuzzy selection for `pick` and `idea`
+  * `gh` — GitHub CLI, required for `issue` subcommand
+
+## CONFIGURATION
+
+Run once per repository to configure git-town branch tracking:
+
+    git town config setup
+
+Select the `llm` model to use:
+
+    llm models                          # list available models
+    llm -m claude-3-5-sonnet-latest … # use a specific model
+
+The `-m` / `--model` flag on any subcommand overrides the model for a single
+invocation.
+
+## SEE ALSO
+
+git(1), git-town(1), llm(1), gh(1), fzf(1)
