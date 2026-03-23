@@ -40,7 +40,7 @@ jobs:
           # Update script sha256 (line immediately after the script URL line)
           sed -i '/releases\/download\/[^"]*git-hack"/{n; s|sha256 "[^"]*"|sha256 "'"${SHA256}"'"|}' Formula/git-hack.rb
           # Update manpage sha256 (line immediately after the #{version} manpage URL line)
-          sed -i '/git-hack\.1"/{n; s|sha256 "[^"]*"|sha256 "'"${MANPAGE_SHA256}"'"|}' Formula/git-hack.rb
+          sed -i '/releases\/download\/[^"]*git-hack\.1"/{n; s|sha256 "[^"]*"|sha256 "'"${MANPAGE_SHA256}"'"|}' Formula/git-hack.rb
           sed -i "s|releases/download/v[^/]*/git-hack -o|releases/download/${TAG}/git-hack -o|" README.md
           sed -i "s|echo \".*  /tmp/git-hack\"|echo \"${SHA256}  /tmp/git-hack\"|" README.md
 
