@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.4...v0.1.5) (2026-03-23)
+
+
+### Bug Fixes
+
+* update release workflow to include manpage URL and SHA256 ([b0ed9d6](https://github.com/Indemnity83/homebrew-git-hack/commit/b0ed9d6e1106d85957c85a670e715a301e60cedf))
+
 ## [0.1.4](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.3...v0.1.4) (2026-03-23)
 
 
