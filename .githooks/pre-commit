@@ -1,15 +1,22 @@
 #!/usr/bin/env zsh
-# Only runs when src/ files are staged.
+# Runs checks/rebuild when src/ files are staged, and recompiles the man page
+# when doc/git-hack.1.ronn is staged (requires ronn; warns if not available).
 
-if ! git diff --cached --name-only | grep -q '^src/'; then
-  exit 0
+staged=$(git diff --cached --name-only)
+
+if print -r -- "$staged" | grep -q '^src/'; then
+  print "hack: src/ changes detected — running checks before commit"
+  make check || { print "❌ Syntax check failed. Commit aborted."; exit 1; }
+  make test  || { print "❌ Tests failed. Commit aborted."; exit 1; }
+  make       || { print "❌ Build failed. Commit aborted."; exit 1; }
+  git add git-hack
+  print "✅ git-hack rebuilt and staged."
 fi
 
-print "hack: src/ changes detected — running checks before commit"
-
-make check || { print "❌ Syntax check failed. Commit aborted."; exit 1; }
-make test  || { print "❌ Tests failed. Commit aborted."; exit 1; }
-make       || { print "❌ Build failed. Commit aborted."; exit 1; }
-git add hack
-
-print "✅ hack rebuilt and staged."
+if print -r -- "$staged" | grep -q '^doc/git-hack\.1\.ronn$'; then
+  print "hack: doc/git-hack.1.ronn staged — recompiling man page"
+  command -v ronn >/dev/null 2>&1 || { print "❌ ronn not found. Install with: gem install ronn (or commit with --no-verify to skip)"; exit 1; }
+  make man || { print "❌ Man page generation failed. Commit aborted."; exit 1; }
+  git add doc/git-hack.1
+  print "✅ doc/git-hack.1 rebuilt and staged."
+fi
