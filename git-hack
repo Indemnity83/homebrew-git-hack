@@ -371,7 +371,7 @@ Return ONLY the branch name.')"
 cmd_commit() {
   need_cmd llm
 
-  local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 no_verify=0 model=""
+  local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 no_verify=0 model="" hint=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --all)          stage_all=1; shift ;;
@@ -382,7 +382,7 @@ cmd_commit() {
       --no-verify)    no_verify=1; shift ;;
       --model)        model="$2"; shift 2 ;;
       -m)             model="$2"; shift 2 ;;
-      --)             shift; break ;;
+      --)             shift; [[ $# -gt 0 ]] && hint="$*"; break ;;
       -*)
         local flags="${1:1}"; shift
         for (( i=1; i<=${#flags}; i++ )); do
@@ -398,7 +398,9 @@ cmd_commit() {
           esac
         done
         ;;
-      *) die "Unknown option: $1" ;;
+      *)
+        [[ -z "$hint" ]] || die "Unexpected argument: $1"
+        hint="$1"; shift ;;
     esac
   done
 
@@ -496,10 +498,12 @@ Return ONLY the subject line.'
   local llm_args=()
   [[ -n "$model" ]] && llm_args=(-m "$model")
 
+  local context
+  context="$(printf 'Repo: %s\nBranch: %s\n\nSTAGED DIFF:\n%s' \
+    "$(basename "$(repo_root)")" "$(current_branch)" "$diff_trunc")"
+  [[ -n "$hint" ]] && context="${context}"$'\n\nUser focus: '"${hint}"
   local msg
-  msg="$(printf 'Repo: %s\nBranch: %s\n\nSTAGED DIFF:\n%s' \
-    "$(basename "$(repo_root)")" "$(current_branch)" "$diff_trunc" \
-    | llm "${llm_args[@]}" -s "$system_prompt")"
+  msg="$(print -r -- "$context" | llm "${llm_args[@]}" -s "$system_prompt")"
   msg="$(print -r -- "$msg" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   [[ -n "$msg" ]] || die "Empty commit message from model."
 
@@ -550,7 +554,7 @@ cmd_propose() {
   need_cmd git-town
   need_cmd gh
 
-  local auto_yes=0 draft=0 model="" to=""
+  local auto_yes=0 draft=0 model="" to="" hint=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --yes)       auto_yes=1; shift ;;
@@ -559,7 +563,7 @@ cmd_propose() {
                    to="$2"; shift 2 ;;
       --model)     model="$2"; shift 2 ;;
       -m)          model="$2"; shift 2 ;;
-      --)          shift; break ;;
+      --)          shift; [[ $# -gt 0 ]] && hint="$*"; break ;;
       -*)
         local flags="${1:1}"; shift
         for (( i=1; i<=${#flags}; i++ )); do
@@ -571,7 +575,9 @@ cmd_propose() {
           esac
         done
         ;;
-      *) die "Unknown option: $1" ;;
+      *)
+        [[ -z "$hint" ]] || die "Unexpected argument: $1"
+        hint="$1"; shift ;;
     esac
   done
 
@@ -607,6 +613,7 @@ cmd_propose() {
   context="$(printf 'Repo: %s\nBranch: %s\nBase: origin/%s\nLast release tag: %s\n\nCOMMITS:\n%s\n\nDIFFSTAT:\n%s\n\nCHANGELOG:\n%s\n\nDIFF (may be truncated):\n%s' \
     "$(basename "$(repo_root)")" "$branch" "$base" "${last_tag:-<none>}" \
     "$commits" "$diffstat" "${cl:-<none>}" "$diff_trunc")"
+  [[ -n "$hint" ]] && context="${context}"$'\n\nUser focus: '"${hint}"
 
   local llm_args=()
   [[ -n "$model" ]] && llm_args=(-m "$model")
@@ -718,7 +725,7 @@ cmd_ship() {
   need_cmd llm
   need_cmd git-town
 
-  local stage_all=0 conventional=0 draft=0 auto_yes=0 no_verify=0 model="" to=""
+  local stage_all=0 conventional=0 draft=0 auto_yes=0 no_verify=0 model="" to="" hint=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --all)          stage_all=1; shift ;;
@@ -732,7 +739,7 @@ cmd_ship() {
                       model="$2"; shift 2 ;;
       -m)             [[ $# -ge 2 ]] || die "-m requires an argument; use -m <model> as a standalone flag"
                       model="$2"; shift 2 ;;
-      --)             shift; break ;;
+      --)             shift; [[ $# -gt 0 ]] && hint="$1"; break ;;
       -*)
         local flags="${1:1}"; shift
         for (( i=1; i<=${#flags}; i++ )); do
@@ -747,7 +754,9 @@ cmd_ship() {
           esac
         done
         ;;
-      *) die "Unknown option: $1" ;;
+      *)
+        [[ -z "$hint" ]] || die "Unexpected argument: $1"
+        hint="$1"; shift ;;
     esac
   done
 
@@ -762,6 +771,8 @@ cmd_ship() {
   [[ $auto_yes -eq 1 ]] && propose_args+=(-y)
   [[ -n "$model" ]]     && propose_args+=(-m "$model")
   [[ -n "$to" ]]        && propose_args+=(--to "$to")
+  [[ -n "$hint" ]]      && commit_args+=(-- "$hint")
+  [[ -n "$hint" ]]      && propose_args+=(-- "$hint")
 
   cmd_commit "${commit_args[@]}"
   cmd_propose "${propose_args[@]}"
@@ -1071,9 +1082,9 @@ Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 Commands:
   git hack [-y] [-m model] [idea]                        Create a feature branch
   git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
-  git hack commit [-y] [-a] [-A] [-c] [-p] [-n] [-m model]  AI commit message
-  git hack propose [-y] [-d] [--to branch] [-m model]        Create/update a GitHub PR
-  git hack ship [-y] [-a] [-c] [-d] [-n] [--to branch] [-m model]  AI commit + open PR in one step
+  git hack commit [-y] [-a] [-A] [-c] [-p] [-n] [-m model] ["hint"]  AI commit message
+  git hack propose [-y] [-d] [--to branch] [-m model] ["hint"]       Create/update a GitHub PR
+  git hack ship [-y] [-a] [-c] [-d] [-n] [--to branch] [-m model] ["hint"]  AI commit + open PR in one step
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack done                Delete merged branch and sync main

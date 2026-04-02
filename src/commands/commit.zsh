@@ -2,7 +2,7 @@
 cmd_commit() {
   need_cmd llm
 
-  local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 no_verify=0 model=""
+  local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 no_verify=0 model="" hint=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --all)          stage_all=1; shift ;;
@@ -13,7 +13,7 @@ cmd_commit() {
       --no-verify)    no_verify=1; shift ;;
       --model)        model="$2"; shift 2 ;;
       -m)             model="$2"; shift 2 ;;
-      --)             shift; break ;;
+      --)             shift; [[ $# -gt 0 ]] && hint="$*"; break ;;
       -*)
         local flags="${1:1}"; shift
         for (( i=1; i<=${#flags}; i++ )); do
@@ -29,7 +29,9 @@ cmd_commit() {
           esac
         done
         ;;
-      *) die "Unknown option: $1" ;;
+      *)
+        [[ -z "$hint" ]] || die "Unexpected argument: $1"
+        hint="$1"; shift ;;
     esac
   done
 
@@ -127,10 +129,12 @@ Return ONLY the subject line.'
   local llm_args=()
   [[ -n "$model" ]] && llm_args=(-m "$model")
 
+  local context
+  context="$(printf 'Repo: %s\nBranch: %s\n\nSTAGED DIFF:\n%s' \
+    "$(basename "$(repo_root)")" "$(current_branch)" "$diff_trunc")"
+  [[ -n "$hint" ]] && context="${context}"$'\n\nUser focus: '"${hint}"
   local msg
-  msg="$(printf 'Repo: %s\nBranch: %s\n\nSTAGED DIFF:\n%s' \
-    "$(basename "$(repo_root)")" "$(current_branch)" "$diff_trunc" \
-    | llm "${llm_args[@]}" -s "$system_prompt")"
+  msg="$(print -r -- "$context" | llm "${llm_args[@]}" -s "$system_prompt")"
   msg="$(print -r -- "$msg" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   [[ -n "$msg" ]] || die "Empty commit message from model."
 

@@ -6,9 +6,9 @@ git-hack(1) -- AI-augmented git workflow helper
 `git hack` [<idea-text>]<br>
 `git hack idea` [-y] [-m <model>] [<idea-text>]<br>
 `git hack issue` [-y] [-m <model>] <number><br>
-`git hack commit` [-a] [-A] [-c] [-p] [-n] [-y] [-m <model>]<br>
-`git hack propose` [-d] [-y] [-m <model>]<br>
-`git hack ship` [-a] [-c] [-d] [-n] [-y] [-m <model>]<br>
+`git hack commit` [-a] [-A] [-c] [-p] [-n] [-y] [-m <model>] [<hint>]<br>
+`git hack propose` [-d] [-y] [-m <model>] [<hint>]<br>
+`git hack ship` [-a] [-c] [-d] [-n] [-y] [-m <model>] [<hint>]<br>
 `git hack pick` [<sha>] [<branch>]<br>
 `git hack pick` --continue<br>
 `git hack done`<br>
@@ -59,7 +59,7 @@ installed and authenticated (`gh auth login`).
 
 ### commit
 
-    git hack commit [-a] [-A] [-c] [-p] [-n] [-y] [-m model]
+    git hack commit [-a] [-A] [-c] [-p] [-n] [-y] [-m model] [hint]
 
 Generate a commit message for staged changes using `llm` and commit. If no
 changes are staged, offers to run `git add -p`.
@@ -88,9 +88,13 @@ changes are staged, offers to run `git add -p`.
   * `-m` <model>, `--model` <model>:
     Override the default `llm` model for this invocation.
 
+  * `<hint>`:
+    Optional free-text guidance passed to the AI to focus the generated commit
+    message on a specific aspect of the diff.
+
 ### propose
 
-    git hack propose [-d] [-y] [-m model]
+    git hack propose [-d] [-y] [-m model] [hint]
 
 Generate a PR title and body using `llm`, then open or update the pull request
 via `git town propose`.
@@ -104,9 +108,14 @@ via `git town propose`.
   * `-m` <model>, `--model` <model>:
     Override the default `llm` model for this invocation.
 
+  * `<hint>`:
+    Optional free-text guidance passed to the AI to focus the generated PR
+    title and body on a specific aspect of the changes (e.g. "compatibility
+    update for Minecraft 26.1").
+
 ### ship
 
-    git hack ship [-a] [-c] [-d] [-n] [-y] [-m model]
+    git hack ship [-a] [-c] [-d] [-n] [-y] [-m model] [hint]
 
 Run `commit` then `propose` in a single step. Flags are forwarded to the
 appropriate subcommand: `-n` (no-verify) goes to `commit` only; `-d` (draft)
@@ -129,6 +138,9 @@ goes to `propose` only; all other flags go to both.
 
   * `-m` <model>, `--model` <model>:
     Override the default `llm` model for this invocation.
+
+  * `<hint>`:
+    Optional free-text guidance forwarded to both the commit and propose steps.
 
 ### pick
 

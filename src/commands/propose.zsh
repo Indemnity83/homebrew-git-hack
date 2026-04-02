@@ -4,7 +4,7 @@ cmd_propose() {
   need_cmd git-town
   need_cmd gh
 
-  local auto_yes=0 draft=0 model="" to=""
+  local auto_yes=0 draft=0 model="" to="" hint=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --yes)       auto_yes=1; shift ;;
@@ -13,7 +13,7 @@ cmd_propose() {
                    to="$2"; shift 2 ;;
       --model)     model="$2"; shift 2 ;;
       -m)          model="$2"; shift 2 ;;
-      --)          shift; break ;;
+      --)          shift; [[ $# -gt 0 ]] && hint="$*"; break ;;
       -*)
         local flags="${1:1}"; shift
         for (( i=1; i<=${#flags}; i++ )); do
@@ -25,7 +25,9 @@ cmd_propose() {
           esac
         done
         ;;
-      *) die "Unknown option: $1" ;;
+      *)
+        [[ -z "$hint" ]] || die "Unexpected argument: $1"
+        hint="$1"; shift ;;
     esac
   done
 
@@ -61,6 +63,7 @@ cmd_propose() {
   context="$(printf 'Repo: %s\nBranch: %s\nBase: origin/%s\nLast release tag: %s\n\nCOMMITS:\n%s\n\nDIFFSTAT:\n%s\n\nCHANGELOG:\n%s\n\nDIFF (may be truncated):\n%s' \
     "$(basename "$(repo_root)")" "$branch" "$base" "${last_tag:-<none>}" \
     "$commits" "$diffstat" "${cl:-<none>}" "$diff_trunc")"
+  [[ -n "$hint" ]] && context="${context}"$'\n\nUser focus: '"${hint}"
 
   local llm_args=()
   [[ -n "$model" ]] && llm_args=(-m "$model")
