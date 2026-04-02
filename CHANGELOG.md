@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.7](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.6...v0.1.7) (2026-04-02)
+
+
+### Features
+
+* add choice between interactive and all staging options ([#32](https://github.com/Indemnity83/homebrew-git-hack/issues/32)) ([dc820c3](https://github.com/Indemnity83/homebrew-git-hack/commit/dc820c3d06e8b32d3a2bab125528d5dc7a54629e))
+* add hint support to commit, propose, and ship commands ([#30](https://github.com/Indemnity83/homebrew-git-hack/issues/30)) ([312ec37](https://github.com/Indemnity83/homebrew-git-hack/commit/312ec378ed13678b25298f77432577538cd2ea24))
+
+
+### Bug Fixes
+
+* add automatic branch push after committing in ship command ([#33](https://github.com/Indemnity83/homebrew-git-hack/issues/33)) ([eb2e374](https://github.com/Indemnity83/homebrew-git-hack/commit/eb2e374db7d1f80d98bfbbbc6050b55e27349318))
+
 ## [0.1.6](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.5...v0.1.6) (2026-04-02)
 
 
