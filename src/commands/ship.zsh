@@ -53,5 +53,11 @@ cmd_ship() {
   [[ -n "$hint" ]]      && propose_args+=(-- "$hint")
 
   cmd_commit "${commit_args[@]}"
+
+  local branch
+  branch="$(current_branch)"
+  info "Pushing $branch..."
+  git push --set-upstream origin "$branch" || die "Failed to push branch to remote."
+
   cmd_propose "${propose_args[@]}"
 }

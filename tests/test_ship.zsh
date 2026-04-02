@@ -2,8 +2,11 @@
 source "$(dirname "$0")/assert.zsh"
 
 # Stubs for functions ship.zsh calls at parse time
-need_cmd() { true }
-die()      { print -r -- "die: $*" >&2; exit 1 }
+need_cmd()       { true }
+die()            { print -r -- "die: $*" >&2; exit 1 }
+current_branch() { print -r -- "test-branch" }
+info()           { true }
+git()            { true }
 
 source "$(dirname "$0")/../src/commands/ship.zsh"
 
