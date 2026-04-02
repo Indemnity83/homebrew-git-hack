@@ -408,9 +408,15 @@ cmd_commit() {
 
   has_staged_changes || {
     info "No staged changes."
-    if confirm "Run 'git add -p' now?"; then
-      git add -p
-    fi
+    print -r -- "Options: (p) git add -p, (a) git add -A, (n) skip" >&2
+    local stage_choice
+    stage_choice="$(prompt_choice "Choose p/a/n:" "p")"
+    case "$stage_choice" in
+      p|P) git add -p ;;
+      a|A) git add -A ;;
+      n|N) ;;
+      *) die "Invalid choice." ;;
+    esac
   }
 
   has_staged_changes || die "Still no staged changes. Stage changes and try again."
