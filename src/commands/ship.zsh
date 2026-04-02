@@ -3,7 +3,7 @@ cmd_ship() {
   need_cmd llm
   need_cmd git-town
 
-  local stage_all=0 conventional=0 draft=0 auto_yes=0 no_verify=0 model=""
+  local stage_all=0 conventional=0 draft=0 auto_yes=0 no_verify=0 model="" to=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --all)          stage_all=1; shift ;;
@@ -11,6 +11,8 @@ cmd_ship() {
       --draft)        draft=1; shift ;;
       --yes)          auto_yes=1; shift ;;
       --no-verify)    no_verify=1; shift ;;
+      --to)           [[ $# -ge 2 ]] || die "--to requires an argument"
+                      to="$2"; shift 2 ;;
       --model)        [[ $# -ge 2 ]] || die "--model requires an argument"
                       model="$2"; shift 2 ;;
       -m)             [[ $# -ge 2 ]] || die "-m requires an argument; use -m <model> as a standalone flag"
@@ -43,7 +45,8 @@ cmd_ship() {
 
   [[ $draft -eq 1 ]]    && propose_args+=(-d)
   [[ $auto_yes -eq 1 ]] && propose_args+=(-y)
-  [[ -n "$model" ]]      && propose_args+=(-m "$model")
+  [[ -n "$model" ]]     && propose_args+=(-m "$model")
+  [[ -n "$to" ]]        && propose_args+=(--to "$to")
 
   cmd_commit "${commit_args[@]}"
   cmd_propose "${propose_args[@]}"

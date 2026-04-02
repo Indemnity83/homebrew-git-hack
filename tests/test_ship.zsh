@@ -51,4 +51,10 @@ cmd_ship -a -c -y -d -n -m mymodel
 assert_eq "combined → commit"  "-a -c -n -y -m mymodel" "${commit_got[*]}"
 assert_eq "combined → propose" "-d -y -m mymodel"       "${propose_got[*]}"
 
+# --to goes to propose only
+commit_got=(); propose_got=()
+cmd_ship --to v2
+assert_eq "--to not → commit"  ""           "${commit_got[*]}"
+assert_eq "--to → propose"     "--to v2"    "${propose_got[*]}"
+
 summarize

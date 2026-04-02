@@ -2,12 +2,15 @@
 cmd_propose() {
   need_cmd llm
   need_cmd git-town
+  need_cmd gh
 
-  local auto_yes=0 draft=0 model=""
+  local auto_yes=0 draft=0 model="" to=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --yes)       auto_yes=1; shift ;;
       --draft)     draft=1; shift ;;
+      --to)        [[ $# -ge 2 ]] || die "--to requires an argument"
+                   to="$2"; shift 2 ;;
       --model)     model="$2"; shift 2 ;;
       -m)          model="$2"; shift 2 ;;
       --)          shift; break ;;
@@ -30,11 +33,14 @@ cmd_propose() {
   branch="$(current_branch)"
   [[ -n "$branch" ]] || die "Detached HEAD; check out a branch first."
 
-  # Get parent branch from git-town's tracking, fall back to default
+  # Get parent branch: explicit --to flag, git-town's tracking, or default
   local base
-  base="$(git config "git-town-branch.${branch}.parent" 2>/dev/null \
-    || git config git-town.main-branch 2>/dev/null \
-    || default_base_branch)"
+  if [[ -n "$to" ]]; then
+    base="$to"
+  else
+    base="$(git config "git-town-branch.${branch}.parent" 2>/dev/null \
+      || default_base_branch)"
+  fi
 
   info "Proposing $branch → $base"
   git fetch origin "$base" --quiet 2>/dev/null || true
@@ -140,8 +146,24 @@ Return ONLY the body text.')"
     die "Cancelled."
   fi
 
-  local draft_flag=()
-  [[ $draft -eq 1 ]] && draft_flag=(--draft)
+  local gh_args=(--base "$base" --title "$title" --body "$body")
+  [[ $draft -eq 1 ]] && gh_args+=(--draft)
 
-  git town propose "${draft_flag[@]}" --title "$title" --body "$body"
+  local pr_url gh_rc=0
+  pr_url="$(gh pr create "${gh_args[@]}")" || gh_rc=$?
+  if [[ $gh_rc -eq 0 ]]; then
+    ok "Created: $pr_url"
+  else
+    local existing_url
+    existing_url="$(gh pr view --json url -q .url 2>/dev/null || true)"
+    if [[ -n "$existing_url" ]]; then
+      info "PR already exists, updating..."
+      gh pr edit --base "$base" --title "$title" --body "$body"
+      ok "Updated: $existing_url"
+    else
+      die "Failed to create PR."
+    fi
+  fi
+
+  gh pr view --web
 }
