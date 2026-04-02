@@ -49,8 +49,8 @@ cmd_ship() {
   [[ $auto_yes -eq 1 ]] && propose_args+=(-y)
   [[ -n "$model" ]]     && propose_args+=(-m "$model")
   [[ -n "$to" ]]        && propose_args+=(--to "$to")
-  [[ -n "$hint" ]]      && commit_args+=("$hint")
-  [[ -n "$hint" ]]      && propose_args+=("$hint")
+  [[ -n "$hint" ]]      && commit_args+=(-- "$hint")
+  [[ -n "$hint" ]]      && propose_args+=(-- "$hint")
 
   cmd_commit "${commit_args[@]}"
   cmd_propose "${propose_args[@]}"

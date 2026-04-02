@@ -13,7 +13,7 @@ cmd_commit() {
       --no-verify)    no_verify=1; shift ;;
       --model)        model="$2"; shift 2 ;;
       -m)             model="$2"; shift 2 ;;
-      --)             shift; [[ $# -gt 0 ]] && hint="$1"; break ;;
+      --)             shift; [[ $# -gt 0 ]] && hint="$*"; break ;;
       -*)
         local flags="${1:1}"; shift
         for (( i=1; i<=${#flags}; i++ )); do
