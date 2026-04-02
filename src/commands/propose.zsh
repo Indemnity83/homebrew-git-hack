@@ -163,4 +163,6 @@ Return ONLY the body text.')"
       die "Failed to create PR."
     fi
   fi
+
+  gh pr view --web
 }
