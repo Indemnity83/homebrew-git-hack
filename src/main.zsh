@@ -26,9 +26,9 @@ Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 Commands:
   git hack [-y] [-m model] [idea]                        Create a feature branch
   git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
-  git hack commit [-y] [-a] [-A] [-c] [-p] [-n] [-m model]  AI commit message
-  git hack propose [-y] [-d] [--to branch] [-m model]        Create/update a GitHub PR
-  git hack ship [-y] [-a] [-c] [-d] [-n] [--to branch] [-m model]  AI commit + open PR in one step
+  git hack commit [-y] [-a] [-A] [-c] [-p] [-n] [-m model] ["hint"]  AI commit message
+  git hack propose [-y] [-d] [--to branch] [-m model] ["hint"]       Create/update a GitHub PR
+  git hack ship [-y] [-a] [-c] [-d] [-n] [--to branch] [-m model] ["hint"]  AI commit + open PR in one step
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack done                Delete merged branch and sync main
