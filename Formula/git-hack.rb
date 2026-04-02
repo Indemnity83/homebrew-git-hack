@@ -1,12 +1,12 @@
 class GitHack < Formula
   desc "AI-augmented git workflow CLI using llm and git-town"
   homepage "https://github.com/indemnity83/homebrew-git-hack"
-  url "https://github.com/indemnity83/homebrew-git-hack/releases/download/v0.1.5/git-hack"
-  sha256 "a5cb3a350e254c5de50f64329717f3e28774ccebe3f4e4184ca0ba0398dbd782"
+  url "https://github.com/indemnity83/homebrew-git-hack/releases/download/v0.1.6/git-hack"
+  sha256 "bda2e346c19e5575d651cda4f467d3d1ee0964db346640728899e5dc106b134e"
   license "MIT"
 
   resource "manpage" do
-    url "https://github.com/indemnity83/homebrew-git-hack/releases/download/v0.1.5/git-hack.1"
+    url "https://github.com/indemnity83/homebrew-git-hack/releases/download/v0.1.6/git-hack.1"
     sha256 "d305c6512bb2f0141478dce5a34243494d73afed6b711bb60ff75ea365d4c886"
   end
 
