@@ -108,7 +108,7 @@ git hack issue 42
 
 ### `git hack commit [-y] [-a] [-A] [-c] [-p] [-n] [-m model]`
 
-Generates a commit message from your staged diff. If nothing is staged, offers to run `git add -p`. You can accept, edit, or cancel before the commit is made.
+Generates a commit message from your staged diff. If nothing is staged, prompts to run `git add -p` (interactive patch) or `git add -A` (all changes). You can accept, edit, or cancel before the commit is made.
 
 | Flag | Description |
 |------|-------------|
