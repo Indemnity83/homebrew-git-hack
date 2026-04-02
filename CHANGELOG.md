@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.5...v0.1.6) (2026-04-02)
+
+
+### Features
+
+* enable proposing PRs against a specific parent branch ([#28](https://github.com/Indemnity83/homebrew-git-hack/issues/28)) ([f7c801c](https://github.com/Indemnity83/homebrew-git-hack/commit/f7c801c4a98d698d70428434c384990c8c256dce))
+
 ## [0.1.5](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.4...v0.1.5) (2026-03-23)
 
 
