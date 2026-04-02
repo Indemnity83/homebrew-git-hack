@@ -53,5 +53,18 @@ cmd_ship() {
   [[ -n "$hint" ]]      && propose_args+=(-- "$hint")
 
   cmd_commit "${commit_args[@]}"
+
+  local branch
+  branch="$(current_branch)"
+  [[ -n "$branch" ]] || die "Detached HEAD; check out a branch first."
+
+  # git-town has no publish/push subcommand, so we push directly.
+  local remote
+  remote="$(git config "branch.${branch}.remote" 2>/dev/null || true)"
+  [[ -n "$remote" ]] || remote="origin"
+
+  info "Pushing $branch to $remote..."
+  git push --set-upstream "$remote" "$branch" || die "Failed to push branch to remote."
+
   cmd_propose "${propose_args[@]}"
 }
