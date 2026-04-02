@@ -6,7 +6,8 @@ need_cmd()       { true }
 die()            { print -r -- "die: $*" >&2; exit 1 }
 current_branch() { print -r -- "test-branch" }
 info()           { true }
-git()            { true }
+GIT_CALLS=()
+git() { GIT_CALLS+=("$*") }
 
 source "$(dirname "$0")/../src/commands/ship.zsh"
 
@@ -18,11 +19,12 @@ cmd_propose() { propose_got=("$@") }
 
 print -r -- "cmd_ship argument forwarding"
 
-# -y goes to both
-commit_got=(); propose_got=()
+# -y goes to both; push fires between commit and propose
+commit_got=(); propose_got=(); GIT_CALLS=()
 cmd_ship -y
 assert_eq "-y → commit"  "-y" "${commit_got[*]}"
 assert_eq "-y → propose" "-y" "${propose_got[*]}"
+assert_contains "push invoked" "push --set-upstream origin test-branch" "${GIT_CALLS[*]}"
 
 # -a -c go to commit only
 commit_got=(); propose_got=()
