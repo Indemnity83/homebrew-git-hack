@@ -137,7 +137,7 @@ git hack propose [\-d] [\-y] [\-m model] [hint]
 .fi
 .
 .P
-Generate a PR title and body using \fBllm\fR, then open or update the pull request via \fBgit town propose\fR\.
+Generate a PR title and body using \fBllm\fR\. After the user confirms the title and body, push the current branch to its remote, then open or update the pull request via \fBgh\fR\.
 .
 .TP
 \fB\-d\fR, \fB\-\-draft\fR
@@ -164,7 +164,7 @@ git hack ship [\-a] [\-c] [\-d] [\-n] [\-y] [\-m model] [hint]
 .fi
 .
 .P
-Run \fBcommit\fR then \fBpropose\fR in a single step\. Flags are forwarded to the appropriate subcommand: \fB\-n\fR (no\-verify) goes to \fBcommit\fR only; \fB\-d\fR (draft) goes to \fBpropose\fR only; all other flags go to both\.
+Run \fBcommit\fR then \fBpropose\fR in a single step\. The branch push happens inside \fBpropose\fR after title/body confirmation\. Flags are forwarded to the appropriate subcommand: \fB\-n\fR (no\-verify) goes to \fBcommit\fR only; \fB\-d\fR (draft) goes to \fBpropose\fR only; all other flags go to both\.
 .
 .TP
 \fB\-a\fR, \fB\-\-all\fR

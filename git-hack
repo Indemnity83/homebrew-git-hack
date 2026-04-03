@@ -705,6 +705,14 @@ Return ONLY the body text.')"
     die "Cancelled."
   fi
 
+  local remote
+  remote="$(git config "branch.${branch}.remote" 2>/dev/null || true)"
+  [[ -n "$remote" ]] || remote="origin"
+  info "Pushing $branch to $remote..."
+  local push_args=("$remote" "$branch")
+  git config "branch.${branch}.merge" &>/dev/null || push_args=(--set-upstream "${push_args[@]}")
+  git push "${push_args[@]}" || die "Failed to push branch to remote."
+
   local gh_args=(--base "$base" --title "$title" --body "$body")
   [[ $draft -eq 1 ]] && gh_args+=(--draft)
 
@@ -781,19 +789,6 @@ cmd_ship() {
   [[ -n "$hint" ]]      && propose_args+=(-- "$hint")
 
   cmd_commit "${commit_args[@]}"
-
-  local branch
-  branch="$(current_branch)"
-  [[ -n "$branch" ]] || die "Detached HEAD; check out a branch first."
-
-  # git-town has no publish/push subcommand, so we push directly.
-  local remote
-  remote="$(git config "branch.${branch}.remote" 2>/dev/null || true)"
-  [[ -n "$remote" ]] || remote="origin"
-
-  info "Pushing $branch to $remote..."
-  git push --set-upstream "$remote" "$branch" || die "Failed to push branch to remote."
-
   cmd_propose "${propose_args[@]}"
 }
 ############################################
