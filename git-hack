@@ -135,6 +135,47 @@ select_with_fzf() {
   fzf "${fzf_opts[@]}"
 }
 
+is_perennial_branch() {
+  local branch="$1"
+  local perennials
+  perennials="$(git config git-town.perennial-branches 2>/dev/null || true)"
+  [[ -z "$perennials" ]] && return 1
+  local b
+  for b in ${(z)perennials}; do
+    [[ "$b" == "$branch" ]] && return 0
+  done
+  return 1
+}
+
+# resolve_hack_base: prints "hack" or "append"
+# "hack"   → git town hack  (branches from main)
+# "append" → git town append (branches from current branch)
+resolve_hack_base() {
+  local cur default
+  cur="$(current_branch)"
+  default="$(default_base_branch)"
+
+  # Already on the default branch — no ambiguity
+  [[ "$cur" == "$default" ]] && { print -r -- "hack"; return; }
+
+  # On a perennial branch — silently use it as parent
+  if is_perennial_branch "$cur"; then
+    info "Branching from perennial '$cur'"
+    print -r -- "append"
+    return
+  fi
+
+  # On a feature/other branch — ask the user
+  info "Current branch '$cur' is not the default ('$default')."
+  local ans
+  ans="$(prompt_choice "Branch from: (1) $default  (2) $cur" "1")"
+  if [[ "$ans" == "2" ]]; then
+    print -r -- "append"
+  else
+    print -r -- "hack"
+  fi
+}
+
 default_base_branch() {
   local base
 
@@ -265,7 +306,9 @@ Return ONLY the branch name.')"
     [[ -n "$branch" ]] || die "Empty branch name."
   fi
 
-  git town hack "$branch"
+  local town_cmd
+  town_cmd="$(resolve_hack_base)"
+  git town "$town_cmd" "$branch"
   ok "Now on branch: $(current_branch)"
 }
 # SUBCOMMAND: issue
@@ -364,7 +407,9 @@ Return ONLY the branch name.')"
     [[ -n "$branch" ]] || die "Empty branch name."
   fi
 
-  git town hack "$branch"
+  local town_cmd
+  town_cmd="$(resolve_hack_base)"
+  git town "$town_cmd" "$branch"
   ok "Now on branch: $(current_branch)"
 }
 # SUBCOMMAND: commit

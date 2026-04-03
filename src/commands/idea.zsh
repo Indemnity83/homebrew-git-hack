@@ -83,6 +83,8 @@ Return ONLY the branch name.')"
     [[ -n "$branch" ]] || die "Empty branch name."
   fi
 
-  git town hack "$branch"
+  local town_cmd
+  town_cmd="$(resolve_hack_base)"
+  git town "$town_cmd" "$branch"
   ok "Now on branch: $(current_branch)"
 }
