@@ -149,13 +149,8 @@ Return ONLY the body text.')"
     die "Cancelled."
   fi
 
-  local remote
-  remote="$(git config "branch.${branch}.remote" 2>/dev/null || true)"
-  [[ -n "$remote" ]] || remote="origin"
-  info "Pushing $branch to $remote..."
-  local push_args=("$remote" "$branch")
-  git config "branch.${branch}.merge" &>/dev/null || push_args=(--set-upstream "${push_args[@]}")
-  git push "${push_args[@]}" || die "Failed to push branch to remote."
+  info "Syncing $branch..."
+  git town sync || die "Failed to sync branch."
 
   local gh_args=(--base "$base" --title "$title" --body "$body")
   [[ $draft -eq 1 ]] && gh_args+=(--draft)
