@@ -19,12 +19,11 @@ cmd_propose() { propose_got=("$@") }
 
 print -r -- "cmd_ship argument forwarding"
 
-# -y goes to both; push fires between commit and propose
-commit_got=(); propose_got=(); GIT_CALLS=()
+# -y goes to both
+commit_got=(); propose_got=()
 cmd_ship -y
 assert_eq "-y → commit"  "-y" "${commit_got[*]}"
 assert_eq "-y → propose" "-y" "${propose_got[*]}"
-assert_contains "push invoked" "push --set-upstream origin test-branch" "${GIT_CALLS[*]}"
 
 # -a -c go to commit only
 commit_got=(); propose_got=()

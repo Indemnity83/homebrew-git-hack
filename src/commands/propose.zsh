@@ -149,6 +149,9 @@ Return ONLY the body text.')"
     die "Cancelled."
   fi
 
+  info "Syncing $branch..."
+  git town sync || die "Failed to sync branch."
+
   local gh_args=(--base "$base" --title "$title" --body "$body")
   [[ $draft -eq 1 ]] && gh_args+=(--draft)
 
