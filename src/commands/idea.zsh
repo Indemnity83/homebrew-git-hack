@@ -84,7 +84,7 @@ Return ONLY the branch name.')"
   fi
 
   local town_cmd
-  town_cmd="$(resolve_hack_base)"
+  town_cmd="$(resolve_hack_base "$auto_yes")"
   git town "$town_cmd" "$branch"
   ok "Now on branch: $(current_branch)"
 }

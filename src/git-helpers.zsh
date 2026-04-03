@@ -33,11 +33,15 @@ is_perennial_branch() {
   local branch="$1"
   local perennials
   perennials="$(git config git-town.perennial-branches 2>/dev/null || true)"
-  [[ -z "$perennials" ]] && return 1
   local b
   for b in ${(z)perennials}; do
     [[ "$b" == "$branch" ]] && return 0
   done
+  local perennial_regex
+  perennial_regex="$(git config git-town.perennial-regex 2>/dev/null || true)"
+  if [[ -n "$perennial_regex" ]] && [[ "$branch" =~ $perennial_regex ]]; then
+    return 0
+  fi
   return 1
 }
 
@@ -45,6 +49,7 @@ is_perennial_branch() {
 # "hack"   → git town hack  (branches from main)
 # "append" → git town append (branches from current branch)
 resolve_hack_base() {
+  local auto_yes="${1:-0}"
   local cur default
   cur="$(current_branch)"
   default="$(default_base_branch)"
@@ -56,6 +61,12 @@ resolve_hack_base() {
   if is_perennial_branch "$cur"; then
     info "Branching from perennial '$cur'"
     print -r -- "append"
+    return
+  fi
+
+  # Non-interactive: default to branching from main
+  if [[ "$auto_yes" == "1" ]]; then
+    print -r -- "hack"
     return
   fi
 
