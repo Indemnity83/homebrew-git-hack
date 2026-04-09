@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.8](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.7...v0.1.8) (2026-04-03)
+
+
+### Features
+
+* add push functionality to propose command after confirmation ([#34](https://github.com/Indemnity83/homebrew-git-hack/issues/34)) ([b5dc8d6](https://github.com/Indemnity83/homebrew-git-hack/commit/b5dc8d6cb45db3d2f76b7f6691139dc70d883519))
+* enable dynamic selection of base branch for git-town ([#35](https://github.com/Indemnity83/homebrew-git-hack/issues/35)) ([f272480](https://github.com/Indemnity83/homebrew-git-hack/commit/f272480fdb5948f029e1f488d2ce07325f6ee00f))
+
 ## [0.1.7](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.6...v0.1.7) (2026-04-02)
 
 
