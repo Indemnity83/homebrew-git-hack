@@ -185,7 +185,7 @@ cmd_pick() {
     head -5 "$git_dir/GIT_HACK_CHERRY_PICK_MSG" >&2
     print -r -- "---" >&2
     info "Resolve conflicts, then run: git hack pick --continue"
-    info "Or abort with: git cherry-pick --abort"
+    info "Or abort with: git hack pick --abort"
     info "The commit message above will be preserved automatically."
     return 1
   fi
