@@ -4,10 +4,26 @@
 cmd_pick() {
   in_git_repo || die "Run this inside a git repository."
 
+  # Handle --abort flag
+  if [[ "${1:-}" == "--abort" ]]; then
+    local git_dir
+    git_dir="$(git rev-parse --git-dir)"
+    if [[ ! -f "$git_dir/CHERRY_PICK_HEAD" ]]; then
+      die "No cherry-pick in progress. Nothing to abort."
+    fi
+    git cherry-pick --abort
+    rm -f "$git_dir/GIT_HACK_CHERRY_PICK_MSG"
+    ok "Cherry-pick aborted."
+    return
+  fi
+
   # Handle --continue flag
   if [[ "${1:-}" == "--continue" ]]; then
+    local git_dir
+    git_dir="$(git rev-parse --git-dir)"
+
     # Check if there's actually a cherry-pick in progress
-    if [[ ! -f "$(git rev-parse --git-dir)/CHERRY_PICK_HEAD" ]]; then
+    if [[ ! -f "$git_dir/CHERRY_PICK_HEAD" ]]; then
       die "No cherry-pick in progress. Nothing to continue."
     fi
 
@@ -37,8 +53,23 @@ cmd_pick() {
       fi
     fi
 
+    # Show the commit message that will be used, restoring from backup if needed
+    local merge_msg_file="$git_dir/MERGE_MSG"
+    local backup_msg_file="$git_dir/GIT_HACK_CHERRY_PICK_MSG"
+    if [[ ! -s "$merge_msg_file" && -s "$backup_msg_file" ]]; then
+      cp "$backup_msg_file" "$merge_msg_file"
+      info "Restored commit message from backup."
+    fi
+    if [[ -s "$merge_msg_file" ]]; then
+      info "Commit message that will be used:"
+      print -r -- "---" >&2
+      head -5 "$merge_msg_file" >&2
+      print -r -- "---" >&2
+    fi
+
     info "Continuing cherry-pick..."
     if git cherry-pick --continue --no-edit; then
+      rm -f "$git_dir/GIT_HACK_CHERRY_PICK_MSG"
       ok "Cherry-pick completed!"
 
       # Ask about pushing
@@ -125,9 +156,15 @@ cmd_pick() {
   info "Updating $target_branch..."
   git pull || die "Failed to pull $target_branch"
 
+  # Save commit message as backup before cherry-picking (in case of conflict)
+  local git_dir
+  git_dir="$(git rev-parse --git-dir)"
+  git log --format='%B' -1 "$commit_sha" > "$git_dir/GIT_HACK_CHERRY_PICK_MSG"
+
   # Cherry-pick
   info "Cherry-picking $commit_sha..."
   if git cherry-pick "$commit_sha"; then
+    rm -f "$git_dir/GIT_HACK_CHERRY_PICK_MSG"
     ok "Cherry-pick successful!"
 
     # Ask about pushing
@@ -143,9 +180,13 @@ cmd_pick() {
       info "Skipping push. You can push manually with: git push"
     fi
   else
-    info "Cherry-pick had conflicts. Resolve them and run: git hack pick --continue"
-    info "Or abort with: git cherry-pick --abort"
-    info "Won't return to original branch until resolved."
+    info "Cherry-pick had conflicts. Original commit message:"
+    print -r -- "---" >&2
+    head -5 "$git_dir/GIT_HACK_CHERRY_PICK_MSG" >&2
+    print -r -- "---" >&2
+    info "Resolve conflicts, then run: git hack pick --continue"
+    info "Or abort with: git hack pick --abort"
+    info "The commit message above will be preserved automatically."
     return 1
   fi
 

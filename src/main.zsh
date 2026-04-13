@@ -31,6 +31,7 @@ Commands:
   git hack ship [-y] [-a] [-c] [-d] [-n] [--to branch] [-m model] ["hint"]  AI commit + open PR in one step
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
+  git hack pick --abort        Abort and clean up
   git hack done                Delete merged branch and sync main
   git hack init                Install global git aliases (git c, git pr, …)
 
