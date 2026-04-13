@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.8...v0.1.9) (2026-04-13)
+
+
+### Features
+
+* add memory backup for cherry-pick commit messages in git hack ([#37](https://github.com/Indemnity83/homebrew-git-hack/issues/37)) ([4e540ea](https://github.com/Indemnity83/homebrew-git-hack/commit/4e540ea104ce0d03f742fdc4949733417e6dc430))
+
 ## [0.1.8](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.7...v0.1.8) (2026-04-03)
 
 
