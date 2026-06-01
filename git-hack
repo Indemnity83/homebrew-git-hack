@@ -1125,9 +1125,18 @@ cmd_init() {
       if [[ -e "$dir/${key}.md" ]]; then
         info "exists, skipped: ${key}.md"
       else
-        default_prompt "$key" > "$dir/${key}.md"
-        ok "wrote ${key}.md"
-        wrote=$((wrote+1))
+        # Write to a temp file first so a failed generation never leaves a
+        # truncated/empty ${key}.md behind.
+        local tmp
+        tmp="$(mktemp "${dir}/.${key}.XXXXXX")"
+        if default_prompt "$key" > "$tmp"; then
+          mv "$tmp" "$dir/${key}.md"
+          ok "wrote ${key}.md"
+          wrote=$((wrote+1))
+        else
+          rm -f "$tmp"
+          info "failed to generate ${key}.md"
+        fi
       fi
     done
     print -r -- "" >&2

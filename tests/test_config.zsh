@@ -69,7 +69,7 @@ done
 
 # Unknown key exits nonzero (die).
 ( default_prompt bogus-key ) >/dev/null 2>&1
-assert_eq "unknown key exits nonzero" "1" "$?"
+assert_ne "unknown key exits nonzero" "0" "$?"
 
 # ---- prompt_dir ----
 print "prompt_dir"

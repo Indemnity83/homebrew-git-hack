@@ -17,6 +17,18 @@ assert_eq() {
   fi
 }
 
+assert_ne() {
+  local desc="$1" unexpected="$2" actual="$3"
+  if [[ "$actual" != "$unexpected" ]]; then
+    print -r -- "  ✓  $desc"
+    (( _PASS++ ))
+  else
+    print -r -- "  ✗  $desc"
+    print -r -- "     expected != ${(q)unexpected}"
+    (( _FAIL++ ))
+  fi
+}
+
 assert_contains() {
   local desc="$1" needle="$2" haystack="$3"
   if [[ "$haystack" == *"$needle"* ]]; then
