@@ -210,6 +210,242 @@ default_base_branch() {
   if git show-ref --verify --quiet refs/heads/master; then print -r -- "master"; return; fi
   print -r -- "main"
 }
+# ---- DEFAULT PROMPTS (single source of truth) ----
+#
+# The built-in system prompt for each AI command. These are the final fallback
+# used by resolve_prompt (see config.zsh) when no override file is present, and
+# the text materialized by `git hack init --prompts`.
+#
+# Override files live at:
+#   .git/hack/<key>.md              (per-repo, local git metadata)
+#   ~/.config/git-hack/<key>.md     (global / personal default)
+
+PROMPT_KEYS=(commit commit-conventional propose-title propose-body branch)
+
+# default_prompt <key> — print the built-in system prompt for KEY.
+default_prompt() {
+  case "$1" in
+    commit) cat <<'EOF'
+You are a meticulous Git commit assistant.
+
+Task:
+Generate ONE single-line commit subject for the staged changes.
+
+Rules:
+- Output ONLY the subject line
+- No explanation
+- No quotes
+- No backticks
+- No markdown
+- No conventional commit prefix
+- No scope
+- No body
+- Use imperative mood
+- Keep it specific and concise
+- Target length: 72 characters or less
+
+Guidance:
+- Describe what changed in the staged diff
+- Prefer strong verbs like Add, Fix, Update, Remove, Refactor, Simplify
+- Avoid vague subjects like "Update code" or "Fix issues"
+- Focus on the most important user-visible or developer-visible change
+
+Good examples:
+- Add print button to report view
+- Fix oauth profile claim handling
+- Simplify heat buffer logic
+- Update release workflow documentation
+
+Return ONLY the subject line.
+EOF
+    ;;
+    commit-conventional) cat <<'EOF'
+You are a meticulous Git commit assistant.
+
+Task:
+Generate ONE single-line Conventional Commit subject for the staged changes.
+
+Rules:
+- Output ONLY the subject line
+- No explanation
+- No quotes
+- No backticks
+- No markdown
+- Format: type: description
+- Use imperative mood
+- Keep it specific and concise
+- Target length: 72 characters or less
+- Choose the most appropriate type based on the diff
+
+Allowed types:
+- feat
+- fix
+- refactor
+- docs
+- test
+- chore
+- ci
+- build
+- perf
+
+Guidance:
+- Do NOT use scopes
+- Describe the change, not the intent or process
+- Prefer strong verbs like Add, Fix, Update, Remove, Refactor, Simplify
+- Avoid vague subjects like "Update code" or "Fix issues"
+
+Good examples:
+- feat: add print button to report view
+- fix: handle missing oauth profile claim
+- refactor: simplify heat buffer logic
+- docs: clarify release workflow
+
+Return ONLY the subject line.
+EOF
+    ;;
+    propose-title) cat <<'EOF'
+You are a senior engineer preparing a GitHub Pull Request title.
+
+Task:
+Generate ONE Conventional Commit title describing the overall change in this branch.
+
+Rules:
+- Output ONLY the title
+- One line only
+- Format: type: description
+- NO scopes (no parentheses)
+- Use imperative mood
+- Be concise but specific
+- Target ≤ 65 characters
+
+Allowed types:
+feat, fix, refactor, perf, test, docs, build, ci, chore, revert
+
+Guidance:
+- Focus on the primary user-facing or developer-facing change
+- Do not mention "PR" or "branch"
+- Do not include trailing punctuation
+
+Examples:
+feat: add print button to report view
+fix: handle missing oauth profile claim
+refactor: simplify heat buffer logic
+
+Return ONLY the title.
+EOF
+    ;;
+    propose-body) cat <<'EOF'
+You are a senior engineer preparing a GitHub Pull Request description.
+
+Write the PR body like release notes for users and maintainers.
+
+Body style:
+- Focus on WHAT changed and WHY it matters
+- Avoid low-level implementation details unless they affect behavior
+- Keep the content concise and scannable
+
+Structure:
+
+Summary
+Short paragraph describing the purpose of the change.
+
+Changes
+Bullet points listing the major changes.
+Group related items where appropriate.
+
+Notes (optional)
+Only include if there are compatibility notes, migrations, or
+important contributor information.
+
+Rules:
+- Use markdown headings
+- Use bullet points under Changes
+- Do NOT invent changes not present in the commits, diff, or changelog
+- Avoid mentioning "this PR" or "this branch"
+
+Return ONLY the body text.
+EOF
+    ;;
+    branch) cat <<'EOF'
+You are a Git workflow assistant.
+
+Task:
+Generate ONE git branch name for the change described in the input.
+
+Branch naming rules:
+- Output ONLY the branch name (no explanation or punctuation)
+- Lowercase only
+- Use kebab-case
+- Words separated by "-"
+- Optional category prefix followed by "/"
+
+Preferred prefixes:
+- feat/  (new feature)
+- fix/   (bug fix)
+- chore/ (maintenance or tooling)
+- refactor/
+- docs/
+- test/
+
+Additional constraints:
+- No spaces
+- No quotes
+- No backticks
+- Max length: 60 characters
+- Descriptive but concise
+- Avoid filler words like "the", "a", "stuff", "things"
+
+Good examples:
+- feat/add-meter-billing-ui
+- fix/authentik-oauth-profile-claim
+- chore/update-docker-compose
+- refactor/simplify-energy-buffer-logic
+
+Return ONLY the branch name.
+EOF
+    ;;
+    *) die "Unknown prompt key: $1" ;;
+  esac
+}
+# ---- PROMPT RESOLUTION ----
+#
+# Each AI command's system prompt can be overridden by a plain file, falling
+# back to the built-in (default_prompt, see prompts.zsh). Lookup order:
+#   1. $(git rev-parse --git-dir)/hack/<key>.md   (per-repo, local git metadata)
+#   2. ${XDG_CONFIG_HOME:-$HOME/.config}/git-hack/<key>.md   (global default)
+#   3. default_prompt <key>   (built-in fallback)
+# A non-empty file fully replaces the built-in prompt.
+
+# resolve_prompt <key> — print the effective system prompt for KEY.
+resolve_prompt() {
+  local key="$1"
+  local gitdir
+  gitdir="$(git rev-parse --git-dir 2>/dev/null || true)"
+  if [[ -n "$gitdir" && -s "$gitdir/hack/${key}.md" ]]; then
+    cat "$gitdir/hack/${key}.md"
+    return
+  fi
+  local global="${XDG_CONFIG_HOME:-$HOME/.config}/git-hack/${key}.md"
+  if [[ -s "$global" ]]; then
+    cat "$global"
+    return
+  fi
+  default_prompt "$key"
+}
+
+# prompt_dir <scope> — print the override directory for SCOPE.
+#   "local" => the repo's git metadata dir (.git/hack)
+#   anything else => the global config dir
+prompt_dir() {
+  if [[ "$1" == local ]]; then
+    local gitdir
+    gitdir="$(git rev-parse --git-dir 2>/dev/null)" \
+      || die "Not inside a git repository (needed for --local)."
+    print -r -- "$gitdir/hack"
+  else
+    print -r -- "${XDG_CONFIG_HOME:-$HOME/.config}/git-hack"
+  fi
+}
 # ---- CHANGELOG HELPERS ----
 changelog_excerpt() {
   # Returns a useful excerpt from CHANGELOG.md, favoring "Unreleased" if present.
@@ -270,41 +506,7 @@ cmd_idea() {
 
   local branch
   branch="$(printf 'Idea: %s\nRepo: %s' "$idea" "$(basename "$(repo_root)")" \
-    | llm "${llm_args[@]}" -s $'You are a Git workflow assistant.
-
-Task:
-Generate ONE git branch name for the user\'s idea.
-
-Branch naming rules:
-- Output ONLY the branch name (no explanation or punctuation)
-- Lowercase only
-- Use kebab-case
-- Words separated by "-"
-- Optional category prefix followed by "/"
-
-Preferred prefixes:
-- feat/  (new feature)
-- fix/   (bug fix)
-- chore/ (maintenance or tooling)
-- refactor/
-- docs/
-- test/
-
-Additional constraints:
-- No spaces
-- No quotes
-- No backticks
-- Max length: 60 characters
-- Descriptive but concise
-- Avoid filler words like "the", "a", "stuff", "things"
-
-Good examples:
-- feat/add-meter-billing-ui
-- fix/authentik-oauth-profile-claim
-- chore/update-docker-compose
-- refactor/simplify-energy-buffer-logic
-
-Return ONLY the branch name.')"
+    | llm "${llm_args[@]}" -s "$(resolve_prompt branch)")"
   branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
   branch="$(sanitize_branch_name "$branch")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
@@ -371,41 +573,7 @@ cmd_issue() {
   local branch
   branch="$(printf 'GitHub issue #%s: %s\n\n%s\n\nRepo: %s' \
     "$issue_number" "$issue_title" "$idea" "$(basename "$(repo_root)")" \
-    | llm "${llm_args[@]}" -s $'You are a Git workflow assistant.
-
-Task:
-Generate ONE git branch name for the GitHub issue.
-
-Branch naming rules:
-- Output ONLY the branch name (no explanation or punctuation)
-- Lowercase only
-- Use kebab-case
-- Words separated by "-"
-- Optional category prefix followed by "/"
-
-Preferred prefixes:
-- feat/  (new feature)
-- fix/   (bug fix)
-- chore/ (maintenance or tooling)
-- refactor/
-- docs/
-- test/
-
-Additional constraints:
-- No spaces
-- No quotes
-- No backticks
-- Max length: 60 characters
-- Descriptive but concise
-- Avoid filler words like "the", "a", "stuff", "things"
-
-Good examples:
-- feat/add-meter-billing-ui
-- fix/authentik-oauth-profile-claim
-- chore/update-docker-compose
-- refactor/simplify-energy-buffer-logic
-
-Return ONLY the branch name.')"
+    | llm "${llm_args[@]}" -s "$(resolve_prompt branch)")"
   branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
   branch="$(sanitize_branch_name "$branch")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
@@ -480,82 +648,10 @@ cmd_commit() {
   local diff_trunc
   diff_trunc="$(truncate_str "$(git diff --cached)" "$MAX_CHARS_DIFF_COMMIT")"
 
+  local cfg_key
+  [[ $conventional -eq 1 ]] && cfg_key=commit-conventional || cfg_key=commit
   local system_prompt
-  if [[ $conventional -eq 1 ]]; then
-    system_prompt=$'You are a meticulous Git commit assistant.
-
-Task:
-Generate ONE single-line Conventional Commit subject for the staged changes.
-
-Rules:
-- Output ONLY the subject line
-- No explanation
-- No quotes
-- No backticks
-- No markdown
-- Format: type: description
-- Use imperative mood
-- Keep it specific and concise
-- Target length: 72 characters or less
-- Choose the most appropriate type based on the diff
-
-Allowed types:
-- feat
-- fix
-- refactor
-- docs
-- test
-- chore
-- ci
-- build
-- perf
-
-Guidance:
-- Do NOT use scopes
-- Describe the change, not the intent or process
-- Prefer strong verbs like Add, Fix, Update, Remove, Refactor, Simplify
-- Avoid vague subjects like "Update code" or "Fix issues"
-
-Good examples:
-- feat: add print button to report view
-- fix: handle missing oauth profile claim
-- refactor: simplify heat buffer logic
-- docs: clarify release workflow
-
-Return ONLY the subject line.'
-  else
-    system_prompt=$'You are a meticulous Git commit assistant.
-
-Task:
-Generate ONE single-line commit subject for the staged changes.
-
-Rules:
-- Output ONLY the subject line
-- No explanation
-- No quotes
-- No backticks
-- No markdown
-- No conventional commit prefix
-- No scope
-- No body
-- Use imperative mood
-- Keep it specific and concise
-- Target length: 72 characters or less
-
-Guidance:
-- Describe what changed in the staged diff
-- Prefer strong verbs like Add, Fix, Update, Remove, Refactor, Simplify
-- Avoid vague subjects like "Update code" or "Fix issues"
-- Focus on the most important user-visible or developer-visible change
-
-Good examples:
-- Add print button to report view
-- Fix oauth profile claim handling
-- Simplify heat buffer logic
-- Update release workflow documentation
-
-Return ONLY the subject line.'
-  fi
+  system_prompt="$(resolve_prompt "$cfg_key")"
 
   local llm_args=()
   [[ -n "$model" ]] && llm_args=(-m "$model")
@@ -683,69 +779,14 @@ cmd_propose() {
   info "Generating PR title..."
   local title
   title="$(print -r -- "$context" \
-    | llm "${llm_args[@]}" -s 'You are a senior engineer preparing a GitHub Pull Request title.
-
-Task:
-Generate ONE Conventional Commit title describing the overall change in this branch.
-
-Rules:
-- Output ONLY the title
-- One line only
-- Format: type: description
-- NO scopes (no parentheses)
-- Use imperative mood
-- Be concise but specific
-- Target ≤ 65 characters
-
-Allowed types:
-feat, fix, refactor, perf, test, docs, build, ci, chore, revert
-
-Guidance:
-- Focus on the primary user-facing or developer-facing change
-- Do not mention "PR" or "branch"
-- Do not include trailing punctuation
-
-Examples:
-feat: add print button to report view
-fix: handle missing oauth profile claim
-refactor: simplify heat buffer logic
-
-Return ONLY the title.')"
+    | llm "${llm_args[@]}" -s "$(resolve_prompt propose-title)")"
   title="$(print -r -- "$title" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   [[ -n "$title" ]] || die "Model returned empty title."
 
   info "Generating PR body..."
   local body
   body="$(print -r -- "$context" \
-    | llm "${llm_args[@]}" -s 'You are a senior engineer preparing a GitHub Pull Request description.
-
-Write the PR body like release notes for users and maintainers.
-
-Body style:
-- Focus on WHAT changed and WHY it matters
-- Avoid low-level implementation details unless they affect behavior
-- Keep the content concise and scannable
-
-Structure:
-
-Summary
-Short paragraph describing the purpose of the change.
-
-Changes
-Bullet points listing the major changes.
-Group related items where appropriate.
-
-Notes (optional)
-Only include if there are compatibility notes, migrations, or
-important contributor information.
-
-Rules:
-- Use markdown headings
-- Use bullet points under Changes
-- Do NOT invent changes not present in the commits, diff, or changelog
-- Avoid mentioning "this PR" or "this branch"
-
-Return ONLY the body text.')"
+    | llm "${llm_args[@]}" -s "$(resolve_prompt propose-body)")"
   body="$(print -r -- "$body" | tr -d '\r')"
   [[ -n "$body" ]] || die "Model returned empty body."
 
@@ -1062,8 +1103,38 @@ cmd_done() {
   git town delete
   git checkout --quiet "$main_branch"
 }
-# SUBCOMMAND: init — install global git aliases for git-hack commands
+# SUBCOMMAND: init — install global git aliases (or scaffold prompt files)
 cmd_init() {
+  local do_prompts=0 scope=global
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --prompts) do_prompts=1; shift ;;
+      --local)   scope=local;  shift ;;
+      --global)  scope=global; shift ;;
+      *) die "Unknown option: $1" ;;
+    esac
+  done
+
+  if [[ $do_prompts -eq 1 ]]; then
+    local dir
+    dir="$(prompt_dir "$scope")"
+    mkdir -p "$dir"
+    info "Writing default prompt files to $dir"
+    local key wrote=0
+    for key in "${PROMPT_KEYS[@]}"; do
+      if [[ -e "$dir/${key}.md" ]]; then
+        info "exists, skipped: ${key}.md"
+      else
+        default_prompt "$key" > "$dir/${key}.md"
+        ok "wrote ${key}.md"
+        wrote=$((wrote+1))
+      fi
+    done
+    print -r -- "" >&2
+    ok "Prompt files ready in $dir ($wrote written). Edit any file to customize."
+    return
+  fi
+
   # Parallel arrays: alias name, git-hack subcommand, description
   local -a alias_names=(c       cap               pr        propose   ship                          pick          done                 )
   local -a alias_cmds=( commit  "commit -a -p"    propose   propose   ship                          pick          done                 )
@@ -1196,6 +1267,7 @@ Commands:
   git hack pick --abort        Abort and clean up
   git hack done                Delete merged branch and sync main
   git hack init                Install global git aliases (git c, git pr, …)
+  git hack init --prompts [--local]   Write editable default prompt files
 
 Dependencies:
   git, llm, git-town
@@ -1203,6 +1275,15 @@ Dependencies:
   optional: fzf (improved selection UI)
 
 Run 'git town config setup' once per repo to configure git-town.
+
+Custom prompts:
+  Override any command's AI prompt with a plain file. Lookup order:
+    .git/hack/<key>.md            (per-repo, not committed)
+    ~/.config/git-hack/<key>.md   (global default)
+    built-in                      (fallback)
+  Keys: commit, commit-conventional, propose-title, propose-body, branch
+  Run 'git hack init --prompts' (global) or '--prompts --local' (this repo)
+  to write the built-in prompts as starting points, then edit them.
 
 HELP
       ;;

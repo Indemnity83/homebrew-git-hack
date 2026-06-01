@@ -1,5 +1,35 @@
-# SUBCOMMAND: init — install global git aliases for git-hack commands
+# SUBCOMMAND: init — install global git aliases (or scaffold prompt files)
 cmd_init() {
+  local do_prompts=0 scope=global
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --prompts) do_prompts=1; shift ;;
+      --local)   scope=local;  shift ;;
+      --global)  scope=global; shift ;;
+      *) die "Unknown option: $1" ;;
+    esac
+  done
+
+  if [[ $do_prompts -eq 1 ]]; then
+    local dir
+    dir="$(prompt_dir "$scope")"
+    mkdir -p "$dir"
+    info "Writing default prompt files to $dir"
+    local key wrote=0
+    for key in "${PROMPT_KEYS[@]}"; do
+      if [[ -e "$dir/${key}.md" ]]; then
+        info "exists, skipped: ${key}.md"
+      else
+        default_prompt "$key" > "$dir/${key}.md"
+        ok "wrote ${key}.md"
+        wrote=$((wrote+1))
+      fi
+    done
+    print -r -- "" >&2
+    ok "Prompt files ready in $dir ($wrote written). Edit any file to customize."
+    return
+  fi
+
   # Parallel arrays: alias name, git-hack subcommand, description
   local -a alias_names=(c       cap               pr        propose   ship                          pick          done                 )
   local -a alias_cmds=( commit  "commit -a -p"    propose   propose   ship                          pick          done                 )
