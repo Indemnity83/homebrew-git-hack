@@ -34,6 +34,7 @@ Commands:
   git hack pick --abort        Abort and clean up
   git hack done                Delete merged branch and sync main
   git hack init                Install global git aliases (git c, git pr, …)
+  git hack init --prompts [--local]   Write editable default prompt files
 
 Dependencies:
   git, llm, git-town
@@ -41,6 +42,15 @@ Dependencies:
   optional: fzf (improved selection UI)
 
 Run 'git town config setup' once per repo to configure git-town.
+
+Custom prompts:
+  Override any command's AI prompt with a plain file. Lookup order:
+    .git/hack/<key>.md            (per-repo, not committed)
+    ~/.config/git-hack/<key>.md   (global default)
+    built-in                      (fallback)
+  Keys: commit, commit-conventional, propose-title, propose-body, branch
+  Run 'git hack init --prompts' (global) or '--prompts --local' (this repo)
+  to write the built-in prompts as starting points, then edit them.
 
 HELP
       ;;

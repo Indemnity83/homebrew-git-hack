@@ -42,6 +42,30 @@ llm models           # list available models
 llm -m claude-3-5-sonnet-latest ...   # use a specific model
 ```
 
+### Custom prompts
+
+Each AI command's `llm` system prompt can be fully overridden with a plain `.md` file
+(these are local — never committed). Resolution order per prompt:
+
+1. `.git/hack/<key>.md` — per-repo (git metadata; not committed, no `.gitignore` needed)
+2. `~/.config/git-hack/<key>.md` (or `$XDG_CONFIG_HOME/git-hack/`) — global default
+3. built-in (the `default_prompt` fallback in `src/prompts.zsh`)
+
+A non-empty file fully replaces the built-in. Keys → commands:
+
+| `<key>` | Command |
+|---------|---------|
+| `commit` | `commit` (standard) |
+| `commit-conventional` | `commit --conventional` |
+| `propose-title` | `propose` (PR title) |
+| `propose-body` | `propose` (PR body) |
+| `branch` | `idea` + `issue` (branch name) |
+
+`git hack init --prompts` writes the built-in prompts to the global dir as editable
+starting points (`--prompts --local` targets `.git/hack/`); existing files are never
+overwritten. The single source of truth for the built-ins is `src/prompts.zsh`;
+`resolve_prompt` (`src/config.zsh`) performs the lookup.
+
 ## Architecture
 
 Source lives in `src/`, concatenated by the Makefile into the single-file `git-hack` distributable.
@@ -51,6 +75,8 @@ src/
   header.zsh          # shebang, constants
   utils.zsh           # die/info/ok, git basics, truncate_str, prompt_choice, sanitize_branch_name
   git-helpers.zsh     # fzf helpers, default_base_branch
+  prompts.zsh         # default_prompt, PROMPT_KEYS — built-in AI prompts (single source of truth)
+  config.zsh          # resolve_prompt, prompt_dir — per-repo/global prompt overrides
   changelog.zsh       # changelog_excerpt, last_release_tag
   commands/
     idea.zsh          # cmd_idea — branch name from free-text idea (llm + git town hack)
@@ -59,7 +85,7 @@ src/
     propose.zsh       # cmd_propose — create/update GitHub PR (llm + git town propose)
     pick.zsh          # cmd_pick — cherry-pick with fzf selection
     done.zsh          # cmd_done — git town sync + delete + checkout main
-    init.zsh          # cmd_init — install global git aliases
+    init.zsh          # cmd_init — install global git aliases; --prompts scaffolds prompt files
   main.zsh            # main() dispatcher + help text
 ```
 
@@ -75,6 +101,7 @@ src/
 | `git hack pick [sha] [branch]` | Cherry-pick a commit |
 | `git hack done` | Sync, delete merged branch, checkout main |
 | `git hack init` | Install global git aliases (git c, git cap, …) |
+| `git hack init --prompts [--local]` | Write built-in prompts as editable override files |
 
 ## Tests
 
