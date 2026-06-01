@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.10](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.9...v0.1.10) (2026-06-01)
+
+
+### Features
+
+* support custom AI prompts using local markdown files ([#39](https://github.com/Indemnity83/homebrew-git-hack/issues/39)) ([e4c7bdc](https://github.com/Indemnity83/homebrew-git-hack/commit/e4c7bdc92584cda98bc29452997af956a62f5502))
+
 ## [0.1.9](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.8...v0.1.9) (2026-04-13)
 
 
