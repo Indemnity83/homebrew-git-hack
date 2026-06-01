@@ -25,6 +25,7 @@ assert_ne() {
   else
     print -r -- "  ✗  $desc"
     print -r -- "     expected != ${(q)unexpected}"
+    print -r -- "     actual:   ${(q)actual}"
     (( _FAIL++ ))
   fi
 }
