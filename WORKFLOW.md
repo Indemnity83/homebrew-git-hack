@@ -99,7 +99,7 @@ Because of this, **PR titles become extremely important**, since squash merging 
 The complete development cycle looks like this:
 
 ```text
-idea → hack → record → propose → merge → done
+idea → hack → commit → propose → merge → git town sync
 ```
 
 Each stage is supported by a `git hack` command.
@@ -151,10 +151,10 @@ When you reach a meaningful checkpoint, record a commit.
 
 ```bash
 git add .
-git hack record
+git hack commit
 ```
 
-If nothing is staged, `git hack record` automatically launches:
+If nothing is staged, `git hack commit` automatically launches:
 
 ```bash
 git add -p
@@ -175,9 +175,9 @@ You may repeat this step as often as needed.
 Example:
 
 ```bash
-git hack record
-git hack record
-git hack record
+git hack commit
+git hack commit
+git hack commit
 ```
 
 This creates a clear narrative of how the feature evolved.
@@ -216,10 +216,9 @@ Changes include:
 - layout adjustments
 ```
 
-If accepted, the tool:
-
-1. creates the pull request
-2. opens it in your browser
+If accepted, the tool hands the title and body to `git town propose`, which
+syncs the branch and opens your forge's proposal page prefilled with them so
+you can review and create the PR.
 
 ---
 
@@ -260,18 +259,18 @@ feat(ui): add print button for reports
 After merging, return to your terminal and run:
 
 ```bash
-git hack done
+git town sync
 ```
 
 This command:
 
-- verifies the branch was merged
-- deletes the remote branch
-- deletes the local branch
-- switches back to `main`
 - updates `main` from the remote
+- detects that your branch was merged
+- deletes the local (and remote) branch
+- switches you back to `main`
 
-Your repository is now ready for the next feature.
+Your repository is now ready for the next feature. (Run `git town sync --all`
+to do this from anywhere, syncing every branch at once.)
 
 ---
 
@@ -325,18 +324,18 @@ git hack idea "add CSV export to reports"
 # implement feature with AI
 
 git add .
-git hack record
+git hack commit
 
 git add .
-git hack record
+git hack commit
 
 git hack propose
 
-# PR created and opened
+# proposal page opens prefilled — create the PR
 
 # after CI passes, squash merge in GitHub
 
-git hack done
+git town sync
 ```
 
 You are now ready to start the next idea.

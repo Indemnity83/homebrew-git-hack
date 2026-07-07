@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "GIT\-HACK" "1" "April 2026" "" ""
+.TH "GIT\-HACK" "1" "July 2026" "" ""
 .
 .SH "NAME"
 \fBgit\-hack\fR \- AI\-augmented git workflow helper
@@ -19,10 +19,7 @@
 \fBgit hack commit\fR [\-a] [\-A] [\-c] [\-p] [\-n] [\-y] [\-m \fImodel\fR] [\fIhint\fR]
 .
 .br
-\fBgit hack propose\fR [\-d] [\-y] [\-m \fImodel\fR] [\fIhint\fR]
-.
-.br
-\fBgit hack ship\fR [\-a] [\-c] [\-d] [\-n] [\-y] [\-m \fImodel\fR] [\fIhint\fR]
+\fBgit hack propose\fR [\-y] [\-m \fImodel\fR] [\fIhint\fR]
 .
 .br
 \fBgit hack pick\fR [\fIsha\fR] [\fIbranch\fR]
@@ -31,15 +28,12 @@
 \fBgit hack pick\fR \-\-continue
 .
 .br
-\fBgit hack done\fR
-.
-.br
 \fBgit hack init\fR
 .
 .br
 .
 .SH "DESCRIPTION"
-\fBgit\-hack\fR augments git workflows with AI assistance\. It uses the \fBllm\fR CLI to generate branch names, commit messages, and pull request descriptions, and \fBgit\-town\fR for branch lifecycle management\. Typical flow: create a branch with \fBidea\fR or \fBissue\fR, make changes, commit with \fBcommit\fR, open a PR with \fBpropose\fR, and clean up with \fBdone\fR\.
+\fBgit\-hack\fR augments git workflows with AI assistance\. It uses the \fBllm\fR CLI to generate branch names, commit messages, and pull request descriptions, and \fBgit\-town\fR for branch lifecycle management\. Typical flow: create a branch with \fBidea\fR or \fBissue\fR, make changes, commit with \fBcommit\fR, open a PR with \fBpropose\fR, and clean up with \fBgit town sync\fR once it merges\.
 .
 .P
 When invoked without a subcommand, \fBgit hack\fR runs in interactive \fBidea\fR mode\. When invoked with an unrecognised first argument, that argument is treated as an idea description\.
@@ -94,7 +88,7 @@ git hack commit [\-a] [\-A] [\-c] [\-p] [\-n] [\-y] [\-m model] [hint]
 .fi
 .
 .P
-Generate a commit message for staged changes using \fBllm\fR and commit\. If no changes are staged, prompts to run \fBgit add \-p\fR (interactive patch) or \fBgit add \-A\fR (all changes)\.
+Generate a commit message for staged changes using \fBllm\fR and commit\. If no changes are staged, offers to run \fBgit add \-p\fR\.
 .
 .TP
 \fB\-a\fR, \fB\-\-all\fR
@@ -132,20 +126,16 @@ Optional free\-text guidance passed to the AI to focus the generated commit mess
 .
 .nf
 
-git hack propose [\-d] [\-y] [\-m model] [hint]
+git hack propose [\-y] [\-m model] [hint]
 .
 .fi
 .
 .P
-Generate a PR title and body using \fBllm\fR\. After the user confirms the title and body, push the current branch to its remote, then open or update the pull request via \fBgh\fR\.
-.
-.TP
-\fB\-d\fR, \fB\-\-draft\fR
-Open the PR as a draft\.
+Generate a PR title and body using \fBllm\fR, then hand them to \fBgit town propose\fR\. git\-town syncs the current branch and opens your forge\'s proposal page prefilled with the generated title and body for you to finalize\.
 .
 .TP
 \fB\-y\fR, \fB\-\-yes\fR
-Submit without confirming the generated title/body\.
+Skip the confirmation of the generated title/body\.
 .
 .TP
 \fB\-m\fR \fImodel\fR, \fB\-\-model\fR \fImodel\fR
@@ -154,45 +144,6 @@ Override the default \fBllm\fR model for this invocation\.
 .TP
 \fB<hint>\fR
 Optional free\-text guidance passed to the AI to focus the generated PR title and body on a specific aspect of the changes (e\.g\. "compatibility update for Minecraft 26\.1")\.
-.
-.SS "ship"
-.
-.nf
-
-git hack ship [\-a] [\-c] [\-d] [\-n] [\-y] [\-m model] [hint]
-.
-.fi
-.
-.P
-Run \fBcommit\fR then \fBpropose\fR in a single step\. The branch push happens inside \fBpropose\fR after title/body confirmation\. Flags are forwarded to the appropriate subcommand: \fB\-n\fR (no\-verify) goes to \fBcommit\fR only; \fB\-d\fR (draft) goes to \fBpropose\fR only; all other flags go to both\.
-.
-.TP
-\fB\-a\fR, \fB\-\-all\fR
-Stage all tracked modifications before committing\.
-.
-.TP
-\fB\-c\fR, \fB\-\-conventional\fR
-Use Conventional Commit format for the commit message\.
-.
-.TP
-\fB\-d\fR, \fB\-\-draft\fR
-Open the resulting PR as a draft\.
-.
-.TP
-\fB\-n\fR, \fB\-\-no\-verify\fR
-Skip pre\-commit and commit\-msg hooks during the commit step\.
-.
-.TP
-\fB\-y\fR, \fB\-\-yes\fR
-Accept all AI suggestions without prompting\.
-.
-.TP
-\fB\-m\fR \fImodel\fR, \fB\-\-model\fR \fImodel\fR
-Override the default \fBllm\fR model for this invocation\.
-.
-.TP
-\fB<hint>\fR
-Optional free\-text guidance forwarded to both the commit and propose steps\.
 .
 .SS "pick"
 .
@@ -209,17 +160,6 @@ Cherry\-pick a commit onto the target branch\. When called without arguments, pr
 .TP
 \fB\-\-continue\fR
 Resume a cherry\-pick that was paused due to conflicts\. Verifies that all conflicts are resolved and all files are staged before continuing\.
-.
-.SS "done"
-.
-.nf
-
-git hack done
-.
-.fi
-.
-.P
-Sync the current branch with its parent (\fBgit town sync\fR), delete the merged branch (\fBgit town delete\fR), and check out the main branch\. Fails if the branch has not been merged\.
 .
 .SS "init"
 .

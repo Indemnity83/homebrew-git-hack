@@ -11,15 +11,15 @@ See [WORKFLOW.md](WORKFLOW.md) for a full walkthrough, including how this pairs 
 ## The Workflow
 
 ```text
-idea → commit → propose → done
+idea → commit → propose → git town sync
 ```
 
 | Step | Command | What it does |
 |------|---------|-------------|
 | Idea | `git hack "description"` | LLM names and creates the branch |
 | Commit | `git hack commit` | LLM generates a commit message from your staged diff |
-| Propose | `git hack propose` | LLM drafts a Conventional Commit PR title and body |
-| Done | `git hack done` | verifies merged, deletes branch, updates main |
+| Propose | `git hack propose` | LLM drafts a Conventional Commit PR title and body, then opens it via `git town propose` |
+| Wrap up | `git town sync` | syncs, deletes the merged branch, and returns you to main |
 
 ---
 
@@ -137,10 +137,11 @@ Also available as `git c` and `git cap` (stage all + commit + push) after runnin
 
 ### `git hack propose`
 
-Creates or updates a GitHub PR for the current branch using `git town propose`. Generates a conventional-commit title and a release-notes-style body from your commits, diff, and `CHANGELOG.md` (if present). Parent branch is read from git-town's tracking config.
+Generates a conventional-commit PR title and a release-notes-style body for the current branch from your commits, diff, and `CHANGELOG.md` (if present), then hands them to `git town propose`. git-town syncs the branch and opens your forge's proposal page prefilled with the generated title and body for you to finalize.
 
 ```bash
 git hack propose
+git hack propose "focus on the caching change"   # optional hint
 ```
 
 Also available as `git pr` and `git propose` after running `git hack init`.
@@ -156,15 +157,9 @@ git hack pick abc1234 release/v2     # cherry-pick onto a specific branch
 git hack pick --continue             # resume after resolving conflicts
 ```
 
-### `git hack done`
+### Wrapping up a branch
 
-Verifies the current branch has been merged into main, then deletes it locally and remotely, switches to main, and pulls the latest.
-
-```bash
-git hack done
-```
-
-Also available as `git done` after running `git hack init`.
+There is no dedicated command for this — once your PR is merged, `git town sync` already syncs main, prunes the merged branch, and returns you to the parent. Run it from anywhere with `git town sync --all`.
 
 ### `git hack init`
 
@@ -185,4 +180,3 @@ Aliases installed:
 | `git pr` | `git hack propose` |
 | `git propose` | `git hack propose` |
 | `git pick` | `git hack pick` |
-| `git done` | `git hack done` |
