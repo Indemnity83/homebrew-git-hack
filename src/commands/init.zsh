@@ -40,15 +40,14 @@ cmd_init() {
   fi
 
   # Parallel arrays: alias name, git-hack subcommand, description
-  local -a alias_names=(c       cap               pr        propose   pick          done                 )
-  local -a alias_cmds=( commit  "commit -a -p"    propose   propose   pick          done                 )
+  local -a alias_names=(c       cap               pr        propose   pick          )
+  local -a alias_cmds=( commit  "commit -a -p"    propose   propose   pick          )
   local -a alias_descs=(
     "AI-generated commit message"
     "Stage all, AI-commit, and push"
     "Create or update a GitHub PR"
     "Create or update a GitHub PR"
     "Cherry-pick a commit"
-    "Delete merged branch and sync main"
   )
 
   info "git-hack alias installer"
