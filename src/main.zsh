@@ -15,7 +15,6 @@ main() {
     idea)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
     issue)    need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_issue "$@" ;;
     propose)  need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_propose "$@" ;;
-    ship)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_ship "$@" ;;
 
     -h|--help)
       cat <<'HELP'
@@ -28,7 +27,6 @@ Commands:
   git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
   git hack commit [-y] [-a] [-A] [-c] [-p] [-n] [-m model] ["hint"]  AI commit message
   git hack propose [-y] [-m model] ["hint"]             Generate PR title/body and open via git town propose
-  git hack ship [-y] [-a] [-c] [-d] [-n] [--to branch] [-m model] ["hint"]  AI commit + open PR in one step
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack pick --abort        Abort and clean up
