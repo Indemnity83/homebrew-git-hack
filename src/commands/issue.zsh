@@ -41,15 +41,14 @@ cmd_issue() {
   idea="$(printf '%s\n\n%s' "$issue_title" "$issue_body")"
   idea="$(truncate_str "$idea" 1500)"
 
-  local llm_args=()
-  [[ -n "$model" ]] && llm_args=(-m "$model")
-
+  local context
+  context="$(printf 'GitHub issue #%s: %s\n\n%s\n\nRepo: %s' \
+    "$issue_number" "$issue_title" "$idea" "$(basename "$(repo_root)")")"
+  local raw
+  raw="$(gen_text branch "$context" "$model")" \
+    || die "llm invocation failed. Check 'llm models' and your API key/config."
   local branch
-  branch="$(printf 'GitHub issue #%s: %s\n\n%s\n\nRepo: %s' \
-    "$issue_number" "$issue_title" "$idea" "$(basename "$(repo_root)")" \
-    | llm "${llm_args[@]}" -s "$(resolve_prompt branch)")"
-  branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
-  branch="$(sanitize_branch_name "$branch")"
+  branch="$(sanitize_branch_name "$(first_line_trimmed "$raw")")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
 
   info "Proposed branch: $branch"

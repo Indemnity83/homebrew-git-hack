@@ -57,19 +57,16 @@ cmd_commit() {
 
   local cfg_key
   [[ $conventional -eq 1 ]] && cfg_key=commit-conventional || cfg_key=commit
-  local system_prompt
-  system_prompt="$(resolve_prompt "$cfg_key")"
-
-  local llm_args=()
-  [[ -n "$model" ]] && llm_args=(-m "$model")
 
   local context
   context="$(printf 'Repo: %s\nBranch: %s\n\nSTAGED DIFF:\n%s' \
     "$(basename "$(repo_root)")" "$(current_branch)" "$diff_trunc")"
   [[ -n "$hint" ]] && context="${context}"$'\n\nUser focus: '"${hint}"
+  local raw
+  raw="$(gen_text "$cfg_key" "$context" "$model")" \
+    || die "llm invocation failed. Check 'llm models' and your API key/config."
   local msg
-  msg="$(print -r -- "$context" | llm "${llm_args[@]}" -s "$system_prompt")"
-  msg="$(print -r -- "$msg" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  msg="$(first_line_trimmed "$raw")"
   [[ -n "$msg" ]] || die "Empty commit message from model."
 
   info "Proposed commit message:"

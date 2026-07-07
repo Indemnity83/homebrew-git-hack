@@ -56,6 +56,31 @@ assert_max_len() {
   fi
 }
 
+assert_not_contains() {
+  local desc="$1" needle="$2" haystack="$3"
+  if [[ "$haystack" != *"$needle"* ]]; then
+    print -r -- "  ✓  $desc"
+    (( _PASS++ ))
+  else
+    print -r -- "  ✗  $desc"
+    print -r -- "     expected NOT to contain: ${(q)needle}"
+    print -r -- "     actual: ${(q)haystack}"
+    (( _FAIL++ ))
+  fi
+}
+
+assert_exit_nonzero() {
+  local desc="$1" rc="$2"
+  if (( rc != 0 )); then
+    print -r -- "  ✓  $desc"
+    (( _PASS++ ))
+  else
+    print -r -- "  ✗  $desc"
+    print -r -- "     expected nonzero exit status, got: $rc"
+    (( _FAIL++ ))
+  fi
+}
+
 summarize() {
   print -r -- ""
   if (( _FAIL == 0 )); then

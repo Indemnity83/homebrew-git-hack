@@ -446,6 +446,37 @@ prompt_dir() {
     print -r -- "${XDG_CONFIG_HOME:-$HOME/.config}/git-hack"
   fi
 }
+# ---- LLM HELPERS ----
+#
+# Shared plumbing for the AI-driven commands (commit, propose, idea, issue).
+# gen_text runs the `llm` CLI with the resolved system prompt for a key;
+# first_line_trimmed cleans a model response down to a single trimmed line.
+
+# gen_text <prompt-key> <context> [model]
+# Pipe CONTEXT into `llm` using the system prompt resolved for PROMPT-KEY and
+# print the model's response. When MODEL is empty, `llm` uses its own default.
+#
+# The exit status is llm's (the pipeline's, via pipefail), so a failed model
+# call is surfaced rather than looking like an empty response. Capture the
+# output into a variable and check the status — e.g.
+#     out="$(gen_text ...)" || die "..."
+# do NOT nest gen_text directly inside another substitution
+# (first_line_trimmed "$(gen_text ...)"), or that status is lost.
+gen_text() {
+  local key="$1" context="$2" model="${3:-}"
+  local prompt
+  prompt="$(resolve_prompt "$key")"
+  local llm_args=()
+  [[ -n "$model" ]] && llm_args=(-m "$model")
+  print -r -- "$context" | llm "${llm_args[@]}" -s "$prompt"
+}
+
+# first_line_trimmed <text>
+# Print the first line of TEXT with CRs stripped and surrounding whitespace
+# trimmed. Used to reduce a model response to a single clean subject/branch line.
+first_line_trimmed() {
+  print -r -- "$1" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//'
+}
 # ---- CHANGELOG HELPERS ----
 changelog_excerpt() {
   # Returns a useful excerpt from CHANGELOG.md, favoring "Unreleased" if present.
@@ -501,14 +532,13 @@ cmd_idea() {
     [[ -n "$idea" ]] || die "No idea provided."
   fi
 
-  local llm_args=()
-  [[ -n "$model" ]] && llm_args=(-m "$model")
-
+  local context
+  context="$(printf 'Idea: %s\nRepo: %s' "$idea" "$(basename "$(repo_root)")")"
+  local raw
+  raw="$(gen_text branch "$context" "$model")" \
+    || die "llm invocation failed. Check 'llm models' and your API key/config."
   local branch
-  branch="$(printf 'Idea: %s\nRepo: %s' "$idea" "$(basename "$(repo_root)")" \
-    | llm "${llm_args[@]}" -s "$(resolve_prompt branch)")"
-  branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
-  branch="$(sanitize_branch_name "$branch")"
+  branch="$(sanitize_branch_name "$(first_line_trimmed "$raw")")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
 
   info "Proposed branch: $branch"
@@ -567,15 +597,14 @@ cmd_issue() {
   idea="$(printf '%s\n\n%s' "$issue_title" "$issue_body")"
   idea="$(truncate_str "$idea" 1500)"
 
-  local llm_args=()
-  [[ -n "$model" ]] && llm_args=(-m "$model")
-
+  local context
+  context="$(printf 'GitHub issue #%s: %s\n\n%s\n\nRepo: %s' \
+    "$issue_number" "$issue_title" "$idea" "$(basename "$(repo_root)")")"
+  local raw
+  raw="$(gen_text branch "$context" "$model")" \
+    || die "llm invocation failed. Check 'llm models' and your API key/config."
   local branch
-  branch="$(printf 'GitHub issue #%s: %s\n\n%s\n\nRepo: %s' \
-    "$issue_number" "$issue_title" "$idea" "$(basename "$(repo_root)")" \
-    | llm "${llm_args[@]}" -s "$(resolve_prompt branch)")"
-  branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
-  branch="$(sanitize_branch_name "$branch")"
+  branch="$(sanitize_branch_name "$(first_line_trimmed "$raw")")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
 
   info "Proposed branch: $branch"
@@ -650,19 +679,16 @@ cmd_commit() {
 
   local cfg_key
   [[ $conventional -eq 1 ]] && cfg_key=commit-conventional || cfg_key=commit
-  local system_prompt
-  system_prompt="$(resolve_prompt "$cfg_key")"
-
-  local llm_args=()
-  [[ -n "$model" ]] && llm_args=(-m "$model")
 
   local context
   context="$(printf 'Repo: %s\nBranch: %s\n\nSTAGED DIFF:\n%s' \
     "$(basename "$(repo_root)")" "$(current_branch)" "$diff_trunc")"
   [[ -n "$hint" ]] && context="${context}"$'\n\nUser focus: '"${hint}"
+  local raw
+  raw="$(gen_text "$cfg_key" "$context" "$model")" \
+    || die "llm invocation failed. Check 'llm models' and your API key/config."
   local msg
-  msg="$(print -r -- "$context" | llm "${llm_args[@]}" -s "$system_prompt")"
-  msg="$(print -r -- "$msg" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  msg="$(first_line_trimmed "$raw")"
   [[ -n "$msg" ]] || die "Empty commit message from model."
 
   info "Proposed commit message:"
@@ -773,21 +799,14 @@ cmd_propose() {
     "$commits" "$diffstat" "${cl:-<none>}" "$diff_trunc")"
   [[ -n "$hint" ]] && context="${context}"$'\n\nUser focus: '"${hint}"
 
-  local llm_args=()
-  [[ -n "$model" ]] && llm_args=(-m "$model")
-
   info "Generating PR title..."
   local title
-  title="$(print -r -- "$context" \
-    | llm "${llm_args[@]}" -s "$(resolve_prompt propose-title)")"
-  title="$(print -r -- "$title" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  title="$(first_line_trimmed "$(gen_text propose-title "$context" "$model")")"
   [[ -n "$title" ]] || die "Model returned empty title."
 
   info "Generating PR body..."
   local body
-  body="$(print -r -- "$context" \
-    | llm "${llm_args[@]}" -s "$(resolve_prompt propose-body)")"
-  body="$(print -r -- "$body" | tr -d '\r')"
+  body="$(gen_text propose-body "$context" "$model" | tr -d '\r')"
   [[ -n "$body" ]] || die "Model returned empty body."
 
   info "Proposed PR title:"

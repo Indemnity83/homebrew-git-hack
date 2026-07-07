@@ -31,14 +31,13 @@ cmd_idea() {
     [[ -n "$idea" ]] || die "No idea provided."
   fi
 
-  local llm_args=()
-  [[ -n "$model" ]] && llm_args=(-m "$model")
-
+  local context
+  context="$(printf 'Idea: %s\nRepo: %s' "$idea" "$(basename "$(repo_root)")")"
+  local raw
+  raw="$(gen_text branch "$context" "$model")" \
+    || die "llm invocation failed. Check 'llm models' and your API key/config."
   local branch
-  branch="$(printf 'Idea: %s\nRepo: %s' "$idea" "$(basename "$(repo_root)")" \
-    | llm "${llm_args[@]}" -s "$(resolve_prompt branch)")"
-  branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
-  branch="$(sanitize_branch_name "$branch")"
+  branch="$(sanitize_branch_name "$(first_line_trimmed "$raw")")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
 
   info "Proposed branch: $branch"
