@@ -65,21 +65,14 @@ cmd_propose() {
     "$commits" "$diffstat" "${cl:-<none>}" "$diff_trunc")"
   [[ -n "$hint" ]] && context="${context}"$'\n\nUser focus: '"${hint}"
 
-  local llm_args=()
-  [[ -n "$model" ]] && llm_args=(-m "$model")
-
   info "Generating PR title..."
   local title
-  title="$(print -r -- "$context" \
-    | llm "${llm_args[@]}" -s "$(resolve_prompt propose-title)")"
-  title="$(print -r -- "$title" | head -n 1 | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  title="$(first_line_trimmed "$(gen_text propose-title "$context" "$model")")"
   [[ -n "$title" ]] || die "Model returned empty title."
 
   info "Generating PR body..."
   local body
-  body="$(print -r -- "$context" \
-    | llm "${llm_args[@]}" -s "$(resolve_prompt propose-body)")"
-  body="$(print -r -- "$body" | tr -d '\r')"
+  body="$(gen_text propose-body "$context" "$model" | tr -d '\r')"
   [[ -n "$body" ]] || die "Model returned empty body."
 
   info "Proposed PR title:"

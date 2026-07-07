@@ -41,14 +41,11 @@ cmd_issue() {
   idea="$(printf '%s\n\n%s' "$issue_title" "$issue_body")"
   idea="$(truncate_str "$idea" 1500)"
 
-  local llm_args=()
-  [[ -n "$model" ]] && llm_args=(-m "$model")
-
+  local context
+  context="$(printf 'GitHub issue #%s: %s\n\n%s\n\nRepo: %s' \
+    "$issue_number" "$issue_title" "$idea" "$(basename "$(repo_root)")")"
   local branch
-  branch="$(printf 'GitHub issue #%s: %s\n\n%s\n\nRepo: %s' \
-    "$issue_number" "$issue_title" "$idea" "$(basename "$(repo_root)")" \
-    | llm "${llm_args[@]}" -s "$(resolve_prompt branch)")"
-  branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
+  branch="$(first_line_trimmed "$(gen_text branch "$context" "$model")")"
   branch="$(sanitize_branch_name "$branch")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
 

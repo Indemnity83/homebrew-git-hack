@@ -31,13 +31,10 @@ cmd_idea() {
     [[ -n "$idea" ]] || die "No idea provided."
   fi
 
-  local llm_args=()
-  [[ -n "$model" ]] && llm_args=(-m "$model")
-
+  local context
+  context="$(printf 'Idea: %s\nRepo: %s' "$idea" "$(basename "$(repo_root)")")"
   local branch
-  branch="$(printf 'Idea: %s\nRepo: %s' "$idea" "$(basename "$(repo_root)")" \
-    | llm "${llm_args[@]}" -s "$(resolve_prompt branch)")"
-  branch="$(print -r -- "$branch" | head -n 1 | tr -d '\r')"
+  branch="$(first_line_trimmed "$(gen_text branch "$context" "$model")")"
   branch="$(sanitize_branch_name "$branch")"
   [[ -n "$branch" ]] || die "Model returned an empty branch name."
 

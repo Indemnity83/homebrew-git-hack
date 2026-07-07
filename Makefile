@@ -4,6 +4,7 @@ SRC_REST = src/utils.zsh \
            src/git-helpers.zsh \
            src/prompts.zsh \
            src/config.zsh \
+           src/llm-helpers.zsh \
            src/changelog.zsh \
            src/commands/idea.zsh \
            src/commands/issue.zsh \
