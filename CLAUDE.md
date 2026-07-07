@@ -77,14 +77,14 @@ src/
   git-helpers.zsh     # fzf helpers, default_base_branch
   prompts.zsh         # default_prompt, PROMPT_KEYS — built-in AI prompts (single source of truth)
   config.zsh          # resolve_prompt, prompt_dir — per-repo/global prompt overrides
+  llm-helpers.zsh     # gen_text, first_line_trimmed — shared llm invocation + output cleanup
   changelog.zsh       # changelog_excerpt, last_release_tag
   commands/
     idea.zsh          # cmd_idea — branch name from free-text idea (llm + git town hack)
     issue.zsh         # cmd_issue — branch name from GitHub issue (gh + llm + git town hack)
     commit.zsh        # cmd_commit — commit message from staged diff (llm + git commit)
-    propose.zsh       # cmd_propose — create/update GitHub PR (llm + git town propose)
+    propose.zsh       # cmd_propose — generate PR title/body, open via git town propose
     pick.zsh          # cmd_pick — cherry-pick with fzf selection
-    done.zsh          # cmd_done — git town sync + delete + checkout main
     init.zsh          # cmd_init — install global git aliases; --prompts scaffolds prompt files
   main.zsh            # main() dispatcher + help text
 ```
@@ -97,9 +97,8 @@ src/
 | `git hack idea ["idea"]` | Explicit idea subcommand |
 | `git hack issue <n>` | Branch from GitHub issue |
 | `git hack commit [-acpy] [-m model]` | AI commit message from staged diff |
-| `git hack propose` | Create/update PR via git-town |
+| `git hack propose [-y] [-m model] ["hint"]` | Generate PR title/body, open via `git town propose` |
 | `git hack pick [sha] [branch]` | Cherry-pick a commit |
-| `git hack done` | Sync, delete merged branch, checkout main |
 | `git hack init` | Install global git aliases (git c, git cap, …) |
 | `git hack init --prompts [--local]` | Write built-in prompts as editable override files |
 
@@ -110,6 +109,8 @@ tests/
   assert.zsh              # assert_eq, assert_contains, assert_max_len, summarize
   test_utils.zsh          # sanitize_branch_name, truncate_str
   test_git_helpers.zsh    # default_base_branch (uses temp git repos)
+  test_config.zsh         # resolve_prompt, default_prompt, prompt_dir
+  test_llm_helpers.zsh    # gen_text (stubbed llm), first_line_trimmed
 ```
 
 Tests cover pure/mockable functions. Interactive `cmd_*` functions are not unit-tested.
@@ -130,4 +131,3 @@ Optional (improve UX): `fzf` (interactive selection), `gh` (for `hack issue`)
 | `git pr` | `git-hack propose` |
 | `git propose` | `git-hack propose` |
 | `git pick` | `git-hack pick` |
-| `git done` | `git-hack done` |
