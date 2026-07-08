@@ -28,7 +28,7 @@
 \fBgit hack pick\fR \-\-continue
 .
 .br
-\fBgit hack init\fR
+\fBgit hack init\fR [\-\-global]
 .
 .br
 .
@@ -161,12 +161,22 @@ Resume a cherry\-pick that was paused due to conflicts\. Verifies that all confl
 .
 .nf
 
-git hack init
+git hack init [\-\-global]
 .
 .fi
 .
 .P
-Install global git aliases into \fB~/\.gitconfig\fR:
+Interactive two\-page setup\. Nothing is written without selection\. Targets the current repo by default (\fB\.git/config\fR, \fB\.git/hack/\fR); \fB\-\-global\fR targets \fB~/\.gitconfig\fR and \fB~/\.config/git\-hack/\fR\.
+.
+.P
+Page 1 offers git alias shortcuts:
+.
+.P
+Page 2 offers the prompt\-override files to scaffold (see the prompt keys under CONFIGURATION)\.
+.
+.TP
+\fB\-\-global\fR
+Write aliases to \fB~/\.gitconfig\fR and prompts to \fB~/\.config/git\-hack/\fR instead of the current repo\.
 .
 .SH "DEPENDENCIES"
 Required:

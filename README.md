@@ -68,13 +68,17 @@ llm keys set anthropic
 git town config setup
 ```
 
-**Install git aliases** (optional but recommended):
+**Optional setup** — pick git aliases and scaffold editable prompt files:
 
 ```bash
-git hack init
+git hack init            # this repo (.git/config, .git/hack)
+git hack init --global   # your account (~/.gitconfig, ~/.config/git-hack)
 ```
 
-This adds shortcuts like `git c`, `git pr`, etc. to your `~/.gitconfig`.
+`init` is a short interactive setup: page 1 lets you choose git alias shortcuts
+(e.g. `git cp` → `git hack checkpoint`), page 2 lets you scaffold prompt-override
+files to customize. It writes to the current repo by default; `--global` targets
+your home config.
 
 ## Dependencies
 
@@ -131,7 +135,7 @@ git hack checkpoint -A -p        # amend and force-push
 git hack checkpoint -m claude-3-5-sonnet-latest  # use a specific model
 ```
 
-Also available as `git c` and `git cap` (stage all + commit + push) after running `git hack init`.
+Also available as `git cp` after running `git hack init`.
 
 ### `git hack propose`
 
@@ -159,22 +163,28 @@ git hack pick --continue             # resume after resolving conflicts
 
 There is no dedicated command for this — once your PR is merged, `git town sync` already syncs main, prunes the merged branch, and returns you to the parent. Run it from anywhere with `git town sync --all`.
 
-### `git hack init`
+### `git hack init [--global]`
 
-Installs optional git aliases into your global `~/.gitconfig`. Run once after installing `git-hack`.
+Interactive, two-page setup — nothing is installed without your say-so. Writes to
+the current repo by default (`.git/config`, `.git/hack/`); `--global` targets
+`~/.gitconfig` and `~/.config/git-hack/`.
 
 ```bash
-git hack init
+git hack init            # this repo
+git hack init --global   # your account
 ```
 
-With `fzf`: TAB to multi-select aliases, ENTER to confirm. Without `fzf`: numbered list, enter numbers or `all`.
+- **Page 1 — aliases:** choose git alias shortcuts to install.
+- **Page 2 — prompts:** choose which prompt-override files to scaffold.
 
-Aliases installed:
+With `fzf`: TAB to multi-select, ENTER to confirm (Esc selects none). Without `fzf`:
+numbered list, enter numbers or `all`.
+
+Alias choices:
 
 | Alias | Expands to |
 |-------|-----------|
-| `git c` | `git hack checkpoint` |
-| `git cap` | `git hack checkpoint -a -p` |
+| `git cp` | `git hack checkpoint` |
 | `git pr` | `git hack propose` |
 | `git propose` | `git hack propose` |
 | `git pick` | `git hack pick` |

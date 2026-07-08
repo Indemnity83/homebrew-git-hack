@@ -60,10 +60,10 @@ A non-empty file fully replaces the built-in. Keys → commands:
 | `propose-body` | `propose` (PR body) |
 | `branch` | `idea` + `issue` (branch name) |
 
-`git hack init --prompts` writes the built-in prompts to the global dir as editable
-starting points (`--prompts --local` targets `.git/hack/`); existing files are never
-overwritten. The single source of truth for the built-ins is `src/prompts.zsh`;
-`resolve_prompt` (`src/config.zsh`) performs the lookup.
+`git hack init` (page 2) scaffolds the chosen prompts as editable override files —
+local (`.git/hack/`) by default, or `--global` (`~/.config/git-hack/`); existing
+files are never overwritten. The single source of truth for the built-ins is
+`src/prompts.zsh`; `resolve_prompt` (`src/config.zsh`) performs the lookup.
 
 ## Architecture
 
@@ -84,7 +84,7 @@ src/
     checkpoint.zsh    # cmd_checkpoint — commit message from staged diff (llm + git commit)
     propose.zsh       # cmd_propose — generate PR title/body, open via git town propose
     pick.zsh          # cmd_pick — cherry-pick with fzf selection
-    init.zsh          # cmd_init — install global git aliases; --prompts scaffolds prompt files
+    init.zsh          # cmd_init + menu_multiselect — interactive setup: git aliases + prompt overrides (local; --global)
   main.zsh            # main() dispatcher + help text
 ```
 
@@ -98,8 +98,7 @@ src/
 | `git hack checkpoint [-acpy] [-m model]` | AI commit message from staged diff |
 | `git hack propose [-y] [-m model] ["hint"]` | Generate PR title/body, open via `git town propose` |
 | `git hack pick [sha] [branch]` | Cherry-pick a commit |
-| `git hack init` | Install global git aliases (git c, git cap, …) |
-| `git hack init --prompts [--local]` | Write built-in prompts as editable override files |
+| `git hack init [--global]` | Interactive setup: pick git aliases + scaffold prompt overrides (local by default) |
 
 ## Tests
 
@@ -119,14 +118,14 @@ Tests cover pure/mockable functions. Interactive `cmd_*` functions are not unit-
 Required: `git`, `llm`, `git-town`, `zsh`
 Optional (improve UX): `fzf` (interactive selection), `gh` (for `hack issue`)
 
-## Aliases (via `git hack init`)
+## Aliases (offered by `git hack init`, page 1)
 
-`git hack init` installs shortcuts into `~/.gitconfig`:
+`git hack init` offers these alias shortcuts (opt-in via the picker), written to
+the repo's `.git/config` by default or `~/.gitconfig` with `--global`:
 
 | Alias | Expands to |
 |-------|-----------|
-| `git c` | `git-hack checkpoint` |
-| `git cap` | `git-hack checkpoint -a -p` |
+| `git cp` | `git-hack checkpoint` |
 | `git pr` | `git-hack propose` |
 | `git propose` | `git-hack propose` |
 | `git pick` | `git-hack pick` |

@@ -2,7 +2,7 @@
 #
 # The built-in system prompt for each AI command. These are the final fallback
 # used by resolve_prompt (see config.zsh) when no override file is present, and
-# the text materialized by `git hack init --prompts`.
+# the text materialized when you scaffold overrides via `git hack init`.
 #
 # Override files live at:
 #   .git/hack/<key>.md              (per-repo, local git metadata)

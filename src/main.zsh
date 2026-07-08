@@ -27,8 +27,7 @@ Commands:
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack pick --abort        Abort and clean up
-  git hack init                Install global git aliases (git c, git pr, …)
-  git hack init --prompts [--local]   Write editable default prompt files
+  git hack init [--global]     Interactive setup: git aliases + prompt overrides (this repo; --global for ~/)
 
 Dependencies:
   git, llm, git-town
@@ -43,8 +42,8 @@ Custom prompts:
     ~/.config/git-hack/<key>.md   (global default)
     built-in                      (fallback)
   Keys: checkpoint, propose-title, propose-body, branch
-  Run 'git hack init --prompts' (global) or '--prompts --local' (this repo)
-  to write the built-in prompts as starting points, then edit them.
+  Run 'git hack init' (this repo) or 'git hack init --global' and pick the
+  prompts to scaffold as editable starting points, then edit them.
 
 HELP
       ;;
