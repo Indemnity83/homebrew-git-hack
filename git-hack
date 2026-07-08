@@ -7,7 +7,7 @@ set -euo pipefail
 # Subcommands:
 #   git hack ["idea"]
 #   git hack issue <number>
-#   git hack commit [-y] [-a] [-A] [-c] [-p] [-n] [-m model]
+#   git hack checkpoint [-y] [-a] [-A] [-p] [-n] [-m model]
 #   git hack propose [-y] [-m model] ["hint"]
 #   git hack pick [commit-sha] [target-branch]
 #   git hack pick --continue
@@ -219,12 +219,12 @@ default_base_branch() {
 #   .git/hack/<key>.md              (per-repo, local git metadata)
 #   ~/.config/git-hack/<key>.md     (global / personal default)
 
-PROMPT_KEYS=(commit commit-conventional propose-title propose-body branch)
+PROMPT_KEYS=(checkpoint propose-title propose-body branch)
 
 # default_prompt <key> — print the built-in system prompt for KEY.
 default_prompt() {
   case "$1" in
-    commit) cat <<'EOF'
+    checkpoint) cat <<'EOF'
 You are a meticulous Git commit assistant.
 
 Task:
@@ -254,50 +254,6 @@ Good examples:
 - Fix oauth profile claim handling
 - Simplify heat buffer logic
 - Update release workflow documentation
-
-Return ONLY the subject line.
-EOF
-    ;;
-    commit-conventional) cat <<'EOF'
-You are a meticulous Git commit assistant.
-
-Task:
-Generate ONE single-line Conventional Commit subject for the staged changes.
-
-Rules:
-- Output ONLY the subject line
-- No explanation
-- No quotes
-- No backticks
-- No markdown
-- Format: type: description
-- Use imperative mood
-- Keep it specific and concise
-- Target length: 72 characters or less
-- Choose the most appropriate type based on the diff
-
-Allowed types:
-- feat
-- fix
-- refactor
-- docs
-- test
-- chore
-- ci
-- build
-- perf
-
-Guidance:
-- Do NOT use scopes
-- Describe the change, not the intent or process
-- Prefer strong verbs like Add, Fix, Update, Remove, Refactor, Simplify
-- Avoid vague subjects like "Update code" or "Fix issues"
-
-Good examples:
-- feat: add print button to report view
-- fix: handle missing oauth profile claim
-- refactor: simplify heat buffer logic
-- docs: clarify release workflow
 
 Return ONLY the subject line.
 EOF
@@ -623,15 +579,14 @@ cmd_issue() {
   git town "$town_cmd" "$branch"
   ok "Now on branch: $(current_branch)"
 }
-# SUBCOMMAND: commit
-cmd_commit() {
+# SUBCOMMAND: checkpoint
+cmd_checkpoint() {
   need_cmd llm
 
-  local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 no_verify=0 model="" hint=""
+  local stage_all=0 push=0 auto_yes=0 amend=0 no_verify=0 model="" hint=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --all)          stage_all=1; shift ;;
-      --conventional) conventional=1; shift ;;
       --push)         push=1; shift ;;
       --yes)          auto_yes=1; shift ;;
       --amend)        amend=1; shift ;;
@@ -647,7 +602,6 @@ cmd_commit() {
           case "${flags[i]}" in
             a) stage_all=1 ;;
             A) amend=1 ;;
-            c) conventional=1 ;;
             n) no_verify=1 ;;
             p) push=1 ;;
             y) auto_yes=1 ;;
@@ -682,15 +636,12 @@ cmd_commit() {
   local diff_trunc
   diff_trunc="$(truncate_str "$(git diff --cached)" "$MAX_CHARS_DIFF_COMMIT")"
 
-  local cfg_key
-  [[ $conventional -eq 1 ]] && cfg_key=commit-conventional || cfg_key=commit
-
   local context
   context="$(printf 'Repo: %s\nBranch: %s\n\nSTAGED DIFF:\n%s' \
     "$(basename "$(repo_root)")" "$(current_branch)" "$diff_trunc")"
   [[ -n "$hint" ]] && context="${context}"$'\n\nUser focus: '"${hint}"
   local raw
-  raw="$(gen_text "$cfg_key" "$context" "$model")" \
+  raw="$(gen_text checkpoint "$context" "$model")" \
     || die "llm invocation failed. Check 'llm models' and your API key/config."
   local msg
   msg="$(first_line_trimmed "$raw")"
@@ -1079,7 +1030,7 @@ cmd_init() {
 
   # Parallel arrays: alias name, git-hack subcommand, description
   local -a alias_names=(c       cap               pr        propose   pick          )
-  local -a alias_cmds=( commit  "commit -a -p"    propose   propose   pick          )
+  local -a alias_cmds=( checkpoint  "checkpoint -a -p"    propose   propose   pick          )
   local -a alias_descs=(
     "AI-generated commit message"
     "Stage all, AI-commit, and push"
@@ -1090,7 +1041,7 @@ cmd_init() {
 
   info "git-hack alias installer"
   print -r -- "Installs shortcuts in your global ~/.gitconfig" >&2
-  print -r -- "e.g. 'git c'  instead of  'git hack commit'" >&2
+  print -r -- "e.g. 'git c'  instead of  'git hack checkpoint'" >&2
   print -r -- "" >&2
 
   local -a selected_names=()
@@ -1180,7 +1131,7 @@ main() {
 
   case "$cmd" in
     init)     cmd_init "$@" ;;
-    commit)   need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_commit "$@" ;;
+    checkpoint) need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_checkpoint "$@" ;;
     pick)     need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_pick "$@" ;;
     idea)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
     issue)    need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_issue "$@" ;;
@@ -1195,7 +1146,7 @@ Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 Commands:
   git hack [-y] [-m model] [idea]                        Create a feature branch
   git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
-  git hack commit [-y] [-a] [-A] [-c] [-p] [-n] [-m model] ["hint"]  AI commit message
+  git hack checkpoint [-y] [-a] [-A] [-p] [-n] [-m model] ["hint"]  AI checkpoint commit
   git hack propose [-y] [-m model] ["hint"]             Generate PR title/body and open via git town propose
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
@@ -1215,7 +1166,7 @@ Custom prompts:
     .git/hack/<key>.md            (per-repo, not committed)
     ~/.config/git-hack/<key>.md   (global default)
     built-in                      (fallback)
-  Keys: commit, commit-conventional, propose-title, propose-body, branch
+  Keys: checkpoint, propose-title, propose-body, branch
   Run 'git hack init --prompts' (global) or '--prompts --local' (this repo)
   to write the built-in prompts as starting points, then edit them.
 

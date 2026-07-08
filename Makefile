@@ -8,7 +8,7 @@ SRC_REST = src/utils.zsh \
            src/changelog.zsh \
            src/commands/idea.zsh \
            src/commands/issue.zsh \
-           src/commands/commit.zsh \
+           src/commands/checkpoint.zsh \
            src/commands/propose.zsh \
            src/commands/pick.zsh \
            src/commands/init.zsh \

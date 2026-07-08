@@ -6,7 +6,7 @@ git-hack(1) -- AI-augmented git workflow helper
 `git hack` [<idea-text>]<br>
 `git hack idea` [-y] [-m <model>] [<idea-text>]<br>
 `git hack issue` [-y] [-m <model>] <number><br>
-`git hack commit` [-a] [-A] [-c] [-p] [-n] [-y] [-m <model>] [<hint>]<br>
+`git hack checkpoint` [-a] [-A] [-p] [-n] [-y] [-m <model>] [<hint>]<br>
 `git hack propose` [-y] [-m <model>] [<hint>]<br>
 `git hack pick` [<sha>] [<branch>]<br>
 `git hack pick` --continue<br>
@@ -17,7 +17,7 @@ git-hack(1) -- AI-augmented git workflow helper
 `git-hack` augments git workflows with AI assistance. It uses the `llm` CLI
 to generate branch names, commit messages, and pull request descriptions, and
 `git-town` for branch lifecycle management. Typical flow: create a branch with
-`idea` or `issue`, make changes, commit with `commit`, open a PR with
+`idea` or `issue`, make changes, checkpoint with `checkpoint`, open a PR with
 `propose`, and clean up with `git town sync` once it merges.
 
 When invoked without a subcommand, `git hack` runs in interactive `idea` mode.
@@ -55,24 +55,21 @@ installed and authenticated (`gh auth login`).
   * `-m` <model>, `--model` <model>:
     Override the default `llm` model for this invocation.
 
-### commit
+### checkpoint
 
-    git hack commit [-a] [-A] [-c] [-p] [-n] [-y] [-m model] [hint]
+    git hack checkpoint [-a] [-A] [-p] [-n] [-y] [-m model] [hint]
 
-Generate a commit message for staged changes using `llm` and commit. If no
-changes are staged, offers to run `git add -p`.
+Generate a commit message for staged changes using `llm` and commit. If nothing
+is staged, prompts for `p` (`git add -p`, interactive patch), `a` (`git add -A`,
+all changes), or `n` (skip).
 
   * `-a`, `--all`:
-    Stage all tracked modifications (`git add -A`) before generating the
-    message.
+    Stage all changes (`git add -A`, including untracked files) before
+    generating the message.
 
   * `-A`, `--amend`:
     Amend the previous commit instead of creating a new one. Implies
     `--force-with-lease` when pushing.
-
-  * `-c`, `--conventional`:
-    Generate a Conventional Commit subject (`type: description`) instead of a
-    plain imperative subject.
 
   * `-p`, `--push`:
     Push to origin after committing.
@@ -130,8 +127,8 @@ Install global git aliases into `~/.gitconfig`:
 
 | Alias        | Expands to            |
 |--------------|-----------------------|
-| `git c`      | `git-hack commit`     |
-| `git cap`    | `git-hack commit -a -p` |
+| `git c`      | `git-hack checkpoint`     |
+| `git cap`    | `git-hack checkpoint -a -p` |
 | `git pr`     | `git-hack propose`    |
 | `git propose`| `git-hack propose`    |
 | `git pick`   | `git-hack pick`       |

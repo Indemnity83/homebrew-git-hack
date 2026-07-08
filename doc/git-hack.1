@@ -16,7 +16,7 @@
 \fBgit hack issue\fR [\-y] [\-m \fImodel\fR] \fInumber\fR
 .
 .br
-\fBgit hack commit\fR [\-a] [\-A] [\-c] [\-p] [\-n] [\-y] [\-m \fImodel\fR] [\fIhint\fR]
+\fBgit hack checkpoint\fR [\-a] [\-A] [\-p] [\-n] [\-y] [\-m \fImodel\fR] [\fIhint\fR]
 .
 .br
 \fBgit hack propose\fR [\-y] [\-m \fImodel\fR] [\fIhint\fR]
@@ -33,7 +33,7 @@
 .br
 .
 .SH "DESCRIPTION"
-\fBgit\-hack\fR augments git workflows with AI assistance\. It uses the \fBllm\fR CLI to generate branch names, commit messages, and pull request descriptions, and \fBgit\-town\fR for branch lifecycle management\. Typical flow: create a branch with \fBidea\fR or \fBissue\fR, make changes, commit with \fBcommit\fR, open a PR with \fBpropose\fR, and clean up with \fBgit town sync\fR once it merges\.
+\fBgit\-hack\fR augments git workflows with AI assistance\. It uses the \fBllm\fR CLI to generate branch names, commit messages, and pull request descriptions, and \fBgit\-town\fR for branch lifecycle management\. Typical flow: create a branch with \fBidea\fR or \fBissue\fR, make changes, checkpoint with \fBcheckpoint\fR, open a PR with \fBpropose\fR, and clean up with \fBgit town sync\fR once it merges\.
 .
 .P
 When invoked without a subcommand, \fBgit hack\fR runs in interactive \fBidea\fR mode\. When invoked with an unrecognised first argument, that argument is treated as an idea description\.
@@ -79,28 +79,24 @@ Accept the AI\-generated branch name without prompting\.
 \fB\-m\fR \fImodel\fR, \fB\-\-model\fR \fImodel\fR
 Override the default \fBllm\fR model for this invocation\.
 .
-.SS "commit"
+.SS "checkpoint"
 .
 .nf
 
-git hack commit [\-a] [\-A] [\-c] [\-p] [\-n] [\-y] [\-m model] [hint]
+git hack checkpoint [\-a] [\-A] [\-p] [\-n] [\-y] [\-m model] [hint]
 .
 .fi
 .
 .P
-Generate a commit message for staged changes using \fBllm\fR and commit\. If no changes are staged, offers to run \fBgit add \-p\fR\.
+Generate a commit message for staged changes using \fBllm\fR and commit\. If nothing is staged, prompts for \fBp\fR (\fBgit add \-p\fR, interactive patch), \fBa\fR (\fBgit add \-A\fR, all changes), or \fBn\fR (skip)\.
 .
 .TP
 \fB\-a\fR, \fB\-\-all\fR
-Stage all tracked modifications (\fBgit add \-A\fR) before generating the message\.
+Stage all changes (\fBgit add \-A\fR, including untracked files) before generating the message\.
 .
 .TP
 \fB\-A\fR, \fB\-\-amend\fR
 Amend the previous commit instead of creating a new one\. Implies \fB\-\-force\-with\-lease\fR when pushing\.
-.
-.TP
-\fB\-c\fR, \fB\-\-conventional\fR
-Generate a Conventional Commit subject (\fBtype: description\fR) instead of a plain imperative subject\.
 .
 .TP
 \fB\-p\fR, \fB\-\-push\fR

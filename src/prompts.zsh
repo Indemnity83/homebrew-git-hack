@@ -8,12 +8,12 @@
 #   .git/hack/<key>.md              (per-repo, local git metadata)
 #   ~/.config/git-hack/<key>.md     (global / personal default)
 
-PROMPT_KEYS=(commit commit-conventional propose-title propose-body branch)
+PROMPT_KEYS=(checkpoint propose-title propose-body branch)
 
 # default_prompt <key> — print the built-in system prompt for KEY.
 default_prompt() {
   case "$1" in
-    commit) cat <<'EOF'
+    checkpoint) cat <<'EOF'
 You are a meticulous Git commit assistant.
 
 Task:
@@ -43,50 +43,6 @@ Good examples:
 - Fix oauth profile claim handling
 - Simplify heat buffer logic
 - Update release workflow documentation
-
-Return ONLY the subject line.
-EOF
-    ;;
-    commit-conventional) cat <<'EOF'
-You are a meticulous Git commit assistant.
-
-Task:
-Generate ONE single-line Conventional Commit subject for the staged changes.
-
-Rules:
-- Output ONLY the subject line
-- No explanation
-- No quotes
-- No backticks
-- No markdown
-- Format: type: description
-- Use imperative mood
-- Keep it specific and concise
-- Target length: 72 characters or less
-- Choose the most appropriate type based on the diff
-
-Allowed types:
-- feat
-- fix
-- refactor
-- docs
-- test
-- chore
-- ci
-- build
-- perf
-
-Guidance:
-- Do NOT use scopes
-- Describe the change, not the intent or process
-- Prefer strong verbs like Add, Fix, Update, Remove, Refactor, Simplify
-- Avoid vague subjects like "Update code" or "Fix issues"
-
-Good examples:
-- feat: add print button to report view
-- fix: handle missing oauth profile claim
-- refactor: simplify heat buffer logic
-- docs: clarify release workflow
 
 Return ONLY the subject line.
 EOF

@@ -55,8 +55,7 @@ A non-empty file fully replaces the built-in. Keys → commands:
 
 | `<key>` | Command |
 |---------|---------|
-| `commit` | `commit` (standard) |
-| `commit-conventional` | `commit --conventional` |
+| `checkpoint` | `checkpoint` |
 | `propose-title` | `propose` (PR title) |
 | `propose-body` | `propose` (PR body) |
 | `branch` | `idea` + `issue` (branch name) |
@@ -82,7 +81,7 @@ src/
   commands/
     idea.zsh          # cmd_idea — branch name from free-text idea (llm + git town hack)
     issue.zsh         # cmd_issue — branch name from GitHub issue (gh + llm + git town hack)
-    commit.zsh        # cmd_commit — commit message from staged diff (llm + git commit)
+    checkpoint.zsh    # cmd_checkpoint — commit message from staged diff (llm + git commit)
     propose.zsh       # cmd_propose — generate PR title/body, open via git town propose
     pick.zsh          # cmd_pick — cherry-pick with fzf selection
     init.zsh          # cmd_init — install global git aliases; --prompts scaffolds prompt files
@@ -96,7 +95,7 @@ src/
 | `git hack ["idea"]` | Create feature branch; defaults to interactive idea mode |
 | `git hack idea ["idea"]` | Explicit idea subcommand |
 | `git hack issue <n>` | Branch from GitHub issue |
-| `git hack commit [-acpy] [-m model]` | AI commit message from staged diff |
+| `git hack checkpoint [-acpy] [-m model]` | AI commit message from staged diff |
 | `git hack propose [-y] [-m model] ["hint"]` | Generate PR title/body, open via `git town propose` |
 | `git hack pick [sha] [branch]` | Cherry-pick a commit |
 | `git hack init` | Install global git aliases (git c, git cap, …) |
@@ -126,8 +125,8 @@ Optional (improve UX): `fzf` (interactive selection), `gh` (for `hack issue`)
 
 | Alias | Expands to |
 |-------|-----------|
-| `git c` | `git-hack commit` |
-| `git cap` | `git-hack commit -a -p` |
+| `git c` | `git-hack checkpoint` |
+| `git cap` | `git-hack checkpoint -a -p` |
 | `git pr` | `git-hack propose` |
 | `git propose` | `git-hack propose` |
 | `git pick` | `git-hack pick` |
