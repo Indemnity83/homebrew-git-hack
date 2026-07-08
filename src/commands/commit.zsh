@@ -11,8 +11,10 @@ cmd_commit() {
       --yes)          auto_yes=1; shift ;;
       --amend)        amend=1; shift ;;
       --no-verify)    no_verify=1; shift ;;
-      --model)        model="$2"; shift 2 ;;
-      -m)             model="$2"; shift 2 ;;
+      --model)        [[ $# -ge 2 ]] || die "--model requires an argument"
+                      model="$2"; shift 2 ;;
+      -m)             [[ $# -ge 2 ]] || die "-m requires an argument"
+                      model="$2"; shift 2 ;;
       --)             shift; [[ $# -gt 0 ]] && hint="$*"; break ;;
       -*)
         local flags="${1:1}"; shift
