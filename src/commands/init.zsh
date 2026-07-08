@@ -41,7 +41,7 @@ cmd_init() {
 
   # Parallel arrays: alias name, git-hack subcommand, description
   local -a alias_names=(c       cap               pr        propose   pick          )
-  local -a alias_cmds=( commit  "commit -a -p"    propose   propose   pick          )
+  local -a alias_cmds=( checkpoint  "checkpoint -a -p"    propose   propose   pick          )
   local -a alias_descs=(
     "AI-generated commit message"
     "Stage all, AI-commit, and push"
@@ -52,7 +52,7 @@ cmd_init() {
 
   info "git-hack alias installer"
   print -r -- "Installs shortcuts in your global ~/.gitconfig" >&2
-  print -r -- "e.g. 'git c'  instead of  'git hack commit'" >&2
+  print -r -- "e.g. 'git c'  instead of  'git hack checkpoint'" >&2
   print -r -- "" >&2
 
   local -a selected_names=()

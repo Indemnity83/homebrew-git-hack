@@ -17,7 +17,7 @@ idea → commit → propose → git town sync
 | Step | Command | What it does |
 |------|---------|-------------|
 | Idea | `git hack "description"` | LLM names and creates the branch |
-| Commit | `git hack commit` | LLM generates a commit message from your staged diff |
+| Checkpoint | `git hack checkpoint` | LLM generates a commit message from your staged diff |
 | Propose | `git hack propose` | LLM drafts a Conventional Commit PR title and body, then opens it via `git town propose` |
 | Wrap up | `git town sync` | syncs, deletes the merged branch, and returns you to main |
 
@@ -106,31 +106,29 @@ Same as `idea`, but fetches the title and body from a GitHub issue to generate t
 git hack issue 42
 ```
 
-### `git hack commit [-y] [-a] [-A] [-c] [-p] [-n] [-m model]`
+### `git hack checkpoint [-y] [-a] [-A] [-p] [-n] [-m model] ["hint"]`
 
-Generates a commit message from your staged diff. If nothing is staged, prompts to run `git add -p` (interactive patch) or `git add -A` (all changes). You can accept, edit, or cancel before the commit is made.
+Generates a commit message from your staged diff. If nothing is staged, prompts for `p` (`git add -p`, interactive patch), `a` (`git add -A`, all changes), or `n` (skip). You can accept, edit, or cancel before the commit is made.
 
 | Flag | Description |
 |------|-------------|
 | `-a` | Stage all changes first (`git add -A`) |
 | `-A` | Amend the last commit instead of creating a new one (uses `--force-with-lease` when pushing) |
-| `-c` | Add a Conventional Commit prefix (`feat:`, `fix:`, …) |
 | `-p` | Push after committing |
 | `-n` | Skip pre-commit and pre-push hooks (`--no-verify`) |
 | `-y` | Auto-accept the generated message without prompting |
 | `-m model` | LLM model to use (passed to `llm -m`) |
 
 ```bash
-git hack commit              # commit staged changes with AI-generated message
-git hack commit -a           # stage all changes first (git add -A)
-git hack commit -p           # push after committing
-git hack commit -a -p        # stage all, commit, and push
-git hack commit -c           # conventional commit prefix (feat:, fix:, …)
-git hack commit -n           # skip pre-commit hooks
-git hack commit -y           # accept message without prompting
-git hack commit -A           # amend the last commit
-git hack commit -A -p        # amend and force-push
-git hack commit -m claude-3-5-sonnet-latest  # use a specific model
+git hack checkpoint              # commit staged changes with AI-generated message
+git hack checkpoint -a           # stage all changes first (git add -A)
+git hack checkpoint -p           # push after committing
+git hack checkpoint -a -p        # stage all, commit, and push
+git hack checkpoint -n           # skip pre-commit hooks
+git hack checkpoint -y           # accept message without prompting
+git hack checkpoint -A           # amend the last commit
+git hack checkpoint -A -p        # amend and force-push
+git hack checkpoint -m claude-3-5-sonnet-latest  # use a specific model
 ```
 
 Also available as `git c` and `git cap` (stage all + commit + push) after running `git hack init`.
@@ -175,8 +173,8 @@ Aliases installed:
 
 | Alias | Expands to |
 |-------|-----------|
-| `git c` | `git hack commit` |
-| `git cap` | `git hack commit -a -p` |
+| `git c` | `git hack checkpoint` |
+| `git cap` | `git hack checkpoint -a -p` |
 | `git pr` | `git hack propose` |
 | `git propose` | `git hack propose` |
 | `git pick` | `git hack pick` |

@@ -32,9 +32,9 @@ print "gen_text"
 llm() { print -r -- "ARGS:$*"; cat; }
 resolve_prompt() { print -r -- "PROMPT:$1"; }
 
-out="$(gen_text commit "the context" gpt-x)"
+out="$(gen_text checkpoint "the context" gpt-x)"
 assert_contains "passes -m <model> when model is set" "-m gpt-x" "$out"
-assert_contains "passes resolved system prompt via -s" "-s PROMPT:commit" "$out"
+assert_contains "passes resolved system prompt via -s" "-s PROMPT:checkpoint" "$out"
 assert_contains "pipes the context to llm on stdin" "the context" "$out"
 
 out_nomodel="$(gen_text propose-title "ctx")"
@@ -43,7 +43,7 @@ assert_contains "still resolves prompt for the key" "-s PROMPT:propose-title" "$
 
 # A failing llm call must surface as a nonzero exit, not a silent empty string.
 llm() { return 3; }
-gen_text commit "ctx" >/dev/null 2>&1
+gen_text checkpoint "ctx" >/dev/null 2>&1
 assert_exit_nonzero "surfaces llm failure as nonzero exit" $?
 
 summarize

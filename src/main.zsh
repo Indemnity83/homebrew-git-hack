@@ -7,7 +7,7 @@ main() {
 
   case "$cmd" in
     init)     cmd_init "$@" ;;
-    commit)   need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_commit "$@" ;;
+    checkpoint) need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_checkpoint "$@" ;;
     pick)     need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_pick "$@" ;;
     idea)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
     issue)    need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_issue "$@" ;;
@@ -22,7 +22,7 @@ Usage: git hack [idea-text]   (defaults to 'idea' when no subcommand given)
 Commands:
   git hack [-y] [-m model] [idea]                        Create a feature branch
   git hack issue [-y] [-m model] <number>                Create a branch from a GitHub issue
-  git hack commit [-y] [-a] [-A] [-c] [-p] [-n] [-m model] ["hint"]  AI commit message
+  git hack checkpoint [-y] [-a] [-A] [-p] [-n] [-m model] ["hint"]  AI checkpoint commit
   git hack propose [-y] [-m model] ["hint"]             Generate PR title/body and open via git town propose
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
@@ -42,7 +42,7 @@ Custom prompts:
     .git/hack/<key>.md            (per-repo, not committed)
     ~/.config/git-hack/<key>.md   (global default)
     built-in                      (fallback)
-  Keys: commit, commit-conventional, propose-title, propose-body, branch
+  Keys: checkpoint, propose-title, propose-body, branch
   Run 'git hack init --prompts' (global) or '--prompts --local' (this repo)
   to write the built-in prompts as starting points, then edit them.
 

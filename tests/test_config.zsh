@@ -24,28 +24,28 @@ with_env() {
 print "resolve_prompt"
 
 # No override files anywhere → built-in default.
-result="$(with_env 'resolve_prompt commit')"
-assert_eq "falls back to default_prompt" "$(default_prompt commit)" "$result"
+result="$(with_env 'resolve_prompt checkpoint')"
+assert_eq "falls back to default_prompt" "$(default_prompt checkpoint)" "$result"
 
 # Per-repo file fully overrides the built-in.
-result="$(with_env 'mkdir -p .git/hack; print -r -- "REPO OVERRIDE" > .git/hack/commit.md; resolve_prompt commit')"
+result="$(with_env 'mkdir -p .git/hack; print -r -- "REPO OVERRIDE" > .git/hack/checkpoint.md; resolve_prompt checkpoint')"
 assert_eq "per-repo file wins" "REPO OVERRIDE" "$result"
 
-# Multi-line content round-trips intact (the scopes use case).
+# Multi-line content round-trips intact (e.g. a conventional-commit override).
 result="$(with_env 'mkdir -p .git/hack
-cat > .git/hack/commit-conventional.md <<EOF
+cat > .git/hack/checkpoint.md <<EOF
 Use a scope.
 Allowed scopes: api, ui, db.
 Format: type(scope): description.
 EOF
-resolve_prompt commit-conventional')"
+resolve_prompt checkpoint')"
 assert_contains "multi-line override preserved (line 1)" "Use a scope." "$result"
 assert_contains "multi-line override preserved (line 2)" "Allowed scopes: api, ui, db." "$result"
 assert_contains "multi-line override preserved (line 3)" "Format: type(scope): description." "$result"
 
 # An empty file is skipped (-s) and falls through to the default.
-result="$(with_env 'mkdir -p .git/hack; : > .git/hack/commit.md; resolve_prompt commit')"
-assert_eq "empty per-repo file falls through" "$(default_prompt commit)" "$result"
+result="$(with_env 'mkdir -p .git/hack; : > .git/hack/checkpoint.md; resolve_prompt checkpoint')"
+assert_eq "empty per-repo file falls through" "$(default_prompt checkpoint)" "$result"
 
 # Global file is used when no per-repo file exists.
 result="$(with_env 'mkdir -p "$XDG_CONFIG_HOME/git-hack"; print -r -- "GLOBAL BRANCH" > "$XDG_CONFIG_HOME/git-hack/branch.md"; resolve_prompt branch')"

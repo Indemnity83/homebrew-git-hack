@@ -1,12 +1,11 @@
-# SUBCOMMAND: commit
-cmd_commit() {
+# SUBCOMMAND: checkpoint
+cmd_checkpoint() {
   need_cmd llm
 
-  local conventional=0 stage_all=0 push=0 auto_yes=0 amend=0 no_verify=0 model="" hint=""
+  local stage_all=0 push=0 auto_yes=0 amend=0 no_verify=0 model="" hint=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --all)          stage_all=1; shift ;;
-      --conventional) conventional=1; shift ;;
       --push)         push=1; shift ;;
       --yes)          auto_yes=1; shift ;;
       --amend)        amend=1; shift ;;
@@ -22,7 +21,6 @@ cmd_commit() {
           case "${flags[i]}" in
             a) stage_all=1 ;;
             A) amend=1 ;;
-            c) conventional=1 ;;
             n) no_verify=1 ;;
             p) push=1 ;;
             y) auto_yes=1 ;;
@@ -57,15 +55,12 @@ cmd_commit() {
   local diff_trunc
   diff_trunc="$(truncate_str "$(git diff --cached)" "$MAX_CHARS_DIFF_COMMIT")"
 
-  local cfg_key
-  [[ $conventional -eq 1 ]] && cfg_key=commit-conventional || cfg_key=commit
-
   local context
   context="$(printf 'Repo: %s\nBranch: %s\n\nSTAGED DIFF:\n%s' \
     "$(basename "$(repo_root)")" "$(current_branch)" "$diff_trunc")"
   [[ -n "$hint" ]] && context="${context}"$'\n\nUser focus: '"${hint}"
   local raw
-  raw="$(gen_text "$cfg_key" "$context" "$model")" \
+  raw="$(gen_text checkpoint "$context" "$model")" \
     || die "llm invocation failed. Check 'llm models' and your API key/config."
   local msg
   msg="$(first_line_trimmed "$raw")"

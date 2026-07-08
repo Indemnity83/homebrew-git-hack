@@ -99,10 +99,15 @@ Because of this, **PR titles become extremely important**, since squash merging 
 The complete development cycle looks like this:
 
 ```text
-idea → commit → propose → ship
+  idea ─▶ develop ⇄ checkpoint ─▶ propose ─▶ ship
+   ▲         (repeat until done)               │
+   └───────────────── next idea ──────────────┘
 ```
 
-Each stage is supported by a `git hack` or `git town` command.
+Two loops: the inner **develop ⇄ checkpoint** loop while building a feature,
+and the outer **idea → … → ship → idea** cycle. Each step maps to a `git hack`
+or `git town` command — except **develop**, which is you (with your AI
+assistant) writing the code.
 
 ---
 
@@ -129,7 +134,7 @@ You are now working on an isolated feature branch.
 
 ---
 
-# 2. Hack on the Feature
+# 2. Develop
 
 At this point you open your coding assistant (Claude, Codex, etc.) and begin implementing the change.
 
@@ -151,16 +156,17 @@ When you reach a meaningful checkpoint, record a commit.
 
 ```bash
 git add .
-git hack commit
+git hack checkpoint
 ```
 
-If nothing is staged, `git hack commit` automatically launches:
+If nothing is staged, `git hack checkpoint` prompts for how to stage:
 
-```bash
-git add -p
-```
+- `p` — `git add -p` (interactively stage just the changes you want)
+- `a` — `git add -A` (stage everything, including new files)
+- `n` — skip staging
 
-This allows you to interactively stage only the changes you want.
+Choosing `p` is the usual path — it lets you curate exactly what goes into the
+checkpoint.
 
 The staged diff is sent to an LLM which generates a short **imperative commit message** such as:
 
@@ -175,9 +181,9 @@ You may repeat this step as often as needed.
 Example:
 
 ```bash
-git hack commit
-git hack commit
-git hack commit
+git hack checkpoint
+git hack checkpoint
+git hack checkpoint
 ```
 
 This creates a clear narrative of how the feature evolved.
@@ -324,10 +330,10 @@ git hack idea "add CSV export to reports"
 # implement feature with AI
 
 git add .
-git hack commit
+git hack checkpoint
 
 git add .
-git hack commit
+git hack checkpoint
 
 git hack propose
 
