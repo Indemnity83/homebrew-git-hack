@@ -44,8 +44,8 @@ brew install llm git-town gh
 
 <!-- RELEASE_INSTALL_BEGIN -->
 ```bash
-curl -fsSL https://github.com/indemnity83/homebrew-git-hack/releases/download/v0.1.10/git-hack -o /tmp/git-hack
-echo "854e7a09bf7929d106f792a48ba9ede0368977adee37c9ec732af5cc3c8c5da1  /tmp/git-hack" | shasum -a 256 -c
+curl -fsSL https://github.com/indemnity83/homebrew-git-hack/releases/download/v0.2.0/git-hack -o /tmp/git-hack
+echo "826181abe4a350177b29f2a9af71da07be86a2234541e8d1ed33e28f8acadb85  /tmp/git-hack" | shasum -a 256 -c
 install -m 755 /tmp/git-hack /usr/local/bin/git-hack
 ```
 <!-- RELEASE_INSTALL_END -->
