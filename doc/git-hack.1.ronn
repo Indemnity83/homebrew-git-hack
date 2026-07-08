@@ -10,7 +10,7 @@ git-hack(1) -- AI-augmented git workflow helper
 `git hack propose` [-y] [-m <model>] [<hint>]<br>
 `git hack pick` [<sha>] [<branch>]<br>
 `git hack pick` --continue<br>
-`git hack init`<br>
+`git hack init` [--global]<br>
 
 ## DESCRIPTION
 
@@ -121,17 +121,27 @@ presents an interactive list of recent commits from the default base branch
 
 ### init
 
-    git hack init
+    git hack init [--global]
 
-Install global git aliases into `~/.gitconfig`:
+Interactive two-page setup. Nothing is written without selection. Targets the
+current repo by default (`.git/config`, `.git/hack/`); `--global` targets
+`~/.gitconfig` and `~/.config/git-hack/`.
+
+Page 1 offers git alias shortcuts:
 
 | Alias        | Expands to            |
 |--------------|-----------------------|
-| `git c`      | `git-hack checkpoint`     |
-| `git cap`    | `git-hack checkpoint -a -p` |
+| `git cp`     | `git-hack checkpoint` |
 | `git pr`     | `git-hack propose`    |
 | `git propose`| `git-hack propose`    |
 | `git pick`   | `git-hack pick`       |
+
+Page 2 offers the prompt-override files to scaffold (see the prompt keys under
+CONFIGURATION).
+
+  * `--global`:
+    Write aliases to `~/.gitconfig` and prompts to `~/.config/git-hack/`
+    instead of the current repo.
 
 ## DEPENDENCIES
 
