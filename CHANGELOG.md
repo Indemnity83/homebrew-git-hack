@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.2.0](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.10...v0.2.0) (2026-07-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* rework init into a two-page, local-first setup ([#50](https://github.com/Indemnity83/homebrew-git-hack/issues/50))
+* `git hack commit` is now `git hack checkpoint`; the `-c`/`--conventional` flag is removed (customize the `checkpoint` prompt instead);
+* remove done command and record alias ([#45](https://github.com/Indemnity83/homebrew-git-hack/issues/45))
+* remove ship command ([#44](https://github.com/Indemnity83/homebrew-git-hack/issues/44))
+* hand propose to git town propose instead of gh ([#43](https://github.com/Indemnity83/homebrew-git-hack/issues/43))
+
+### Features
+
+* hand propose to git town propose instead of gh ([#43](https://github.com/Indemnity83/homebrew-git-hack/issues/43)) ([0a55c87](https://github.com/Indemnity83/homebrew-git-hack/commit/0a55c875a5f1cc5331e78e9a7e785a5965ee3c8d))
+* remove done command and record alias ([#45](https://github.com/Indemnity83/homebrew-git-hack/issues/45)) ([8ff3177](https://github.com/Indemnity83/homebrew-git-hack/commit/8ff3177cf3bbf79e4e6f2e80de1a54f597de0610))
+* remove ship command ([#44](https://github.com/Indemnity83/homebrew-git-hack/issues/44)) ([855d9bd](https://github.com/Indemnity83/homebrew-git-hack/commit/855d9bd6658019d1549f0d1a0d7ddebfd4dd256c))
+* rename the commit command to checkpoint ([#49](https://github.com/Indemnity83/homebrew-git-hack/issues/49)) ([19a1032](https://github.com/Indemnity83/homebrew-git-hack/commit/19a10327e0cd180124684e5948a3812e27f22d5c))
+* rework init into a two-page, local-first setup ([#50](https://github.com/Indemnity83/homebrew-git-hack/issues/50)) ([41332b8](https://github.com/Indemnity83/homebrew-git-hack/commit/41332b816e9330fdab92fd6fb951516a71a0e64c))
+
+
+### Bug Fixes
+
+* validate --model/-m has an argument in commit, idea, issue ([#48](https://github.com/Indemnity83/homebrew-git-hack/issues/48)) ([eca2126](https://github.com/Indemnity83/homebrew-git-hack/commit/eca2126866f5669a858a255d0bdab145817e8907))
+
+
+### Refactoring
+
+* extract shared llm generation helpers ([#42](https://github.com/Indemnity83/homebrew-git-hack/issues/42)) ([70b7723](https://github.com/Indemnity83/homebrew-git-hack/commit/70b77235c69e1aed8d7368ac34cec4e84459fe95))
+
 ## [0.1.10](https://github.com/Indemnity83/homebrew-git-hack/compare/v0.1.9...v0.1.10) (2026-06-01)
 
 
