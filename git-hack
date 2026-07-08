@@ -1031,26 +1031,6 @@ cmd_pick() {
 
   ok "Done!"
 }
-# SUBCOMMAND: done
-cmd_done() {
-  need_cmd git-town
-
-  local current_branch main_branch
-  current_branch=$(current_branch)
-  [[ -n "$current_branch" ]] || die "Detached HEAD; check out a branch first."
-  main_branch=$(default_base_branch)
-
-  [[ "$current_branch" == "$main_branch" ]] \
-    && die "Already on '${main_branch}'. Run from a feature branch."
-
-  # Sync fetches with --prune (removes stale remote tracking refs for deleted
-  # branches) and updates main. git town delete then acts as the merge guard —
-  # it fails if the branch has not been merged, which aborts the script via
-  # set -e. No second sync needed; git town sync already updated main.
-  git town sync
-  git town delete
-  git checkout --quiet "$main_branch"
-}
 # SUBCOMMAND: init — install global git aliases (or scaffold prompt files)
 cmd_init() {
   local do_prompts=0 scope=global
@@ -1093,15 +1073,14 @@ cmd_init() {
   fi
 
   # Parallel arrays: alias name, git-hack subcommand, description
-  local -a alias_names=(c       cap               pr        propose   pick          done                 )
-  local -a alias_cmds=( commit  "commit -a -p"    propose   propose   pick          done                 )
+  local -a alias_names=(c       cap               pr        propose   pick          )
+  local -a alias_cmds=( commit  "commit -a -p"    propose   propose   pick          )
   local -a alias_descs=(
     "AI-generated commit message"
     "Stage all, AI-commit, and push"
-    "Create or update a GitHub PR"
-    "Create or update a GitHub PR"
+    "AI-drafted PR title/body via git town propose"
+    "AI-drafted PR title/body via git town propose"
     "Cherry-pick a commit"
-    "Delete merged branch and sync main"
   )
 
   info "git-hack alias installer"
@@ -1196,10 +1175,7 @@ main() {
 
   case "$cmd" in
     init)     cmd_init "$@" ;;
-    commit|record)
-              [[ "$cmd" == "record" ]] && print -r -- "Warning: 'git hack record' is deprecated; use 'git hack commit' instead." >&2
-              need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_commit "$@" ;;
-    done)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_done "$@" ;;
+    commit)   need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_commit "$@" ;;
     pick)     need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_pick "$@" ;;
     idea)     need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_idea "$@" ;;
     issue)    need_cmd llm; need_cmd git-town; in_git_repo || die "Run this inside a git repository."; cmd_issue "$@" ;;
@@ -1219,7 +1195,6 @@ Commands:
   git hack pick [sha] [branch]                          Cherry-pick a commit (defaults to current branch)
   git hack pick --continue     Continue after resolving conflicts
   git hack pick --abort        Abort and clean up
-  git hack done                Delete merged branch and sync main
   git hack init                Install global git aliases (git c, git pr, …)
   git hack init --prompts [--local]   Write editable default prompt files
 
